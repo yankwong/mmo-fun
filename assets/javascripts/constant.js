@@ -1,0 +1,2 @@
+var MAX_PLAYERS = 5,
+    INIT_MONEY  = 100;

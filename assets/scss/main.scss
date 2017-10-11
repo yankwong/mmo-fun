@@ -1,3 +1,72 @@
-body {
-  color: black;
-} 
+.hidden {
+  display: none !important;
+}
+
+.avatar {
+  border: 2px solid black;
+  width: 150px;
+  height: 150px;
+  background-repeat: no-repeat;
+  background-image: url('../images/sprite/got.png');
+
+  &:hover {
+    border: 2px solid gold;
+  }
+
+  &.avatar-1 {
+    background-position: -50px -7px
+  }
+  &.avatar-2 {
+    background-position: -234px -7px
+  }
+  &.avatar-3 {
+    background-position: -638px -7px
+  }
+  &.avatar-4 {
+    background-position: -800px -7px;
+  }
+}
+
+.login-container {
+  .user-name {
+    justify-content: center;
+
+    .user-form {
+      text-align: center;
+
+      .username {
+        width: 70%;
+        padding: 0 10px;
+      }
+    }
+  }
+  .avatar-select {
+    display: flex;
+    justify-content: center;
+
+    .avatar {
+      margin: 5px;
+      cursor: pointer;
+    }
+
+    .title {
+      text-align: center;
+      margin: 20px;
+    }
+  }
+  .connected-players {
+    height: 200px;
+    width: 100%;
+    border: 1px solid red;
+    margin: 20px;
+
+    .player {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 10px;
+      .ready-btn {
+          padding: 0.2rem .6rem;
+      }
+    }
+  }
+}
