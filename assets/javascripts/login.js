@@ -101,18 +101,30 @@ YTK.poker = (function() {
       return undefined;
     });
   },
-  initPage = function() {
+  initLogin = function() {
+    bindDisconnect();
+
+    // login page
     bindAvatarSelect();
     bindJoinBtn();
     bindReadyBtn();
-    bindDisconnect();
+
+    // when the game is ready to start, trigger an event
+    // for the rest of the page to listen to
+    /*
+    $.event.trigger({
+      type: "newMessage",
+      message: "Hello World!",
+      time: new Date()
+    });
+    */
   };
 
   return {
-    initPage : initPage
+    initLogin : initLogin
   }
 })();
 
 $(function() {
-  YTK.poker.initPage();
+  YTK.poker.initLogin();
 });
