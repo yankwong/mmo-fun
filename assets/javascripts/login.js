@@ -46,42 +46,50 @@ YTK.poker = (function() {
       // start a timer for all players
     });
   },
+  handleJoinGame = function() {
+    userName = $('.username', '.user-form').val().trim();
+
+    if (userName !== '') {
+      hideDiv($('.user-form'));
+      database.ref().once('value', function(snapshot) {
+
+        if (isGameFull(snapshot)) { // game is full
+          console.log('game is full dude');
+        }
+
+        else {
+          var userID = getAvailableUserID(snapshot);
+
+          if (userID !== -1) {
+            // init player object
+            setPlayerObj({
+              id        : userID,
+              name      : userName,
+              startTime : Date.now(),
+              money     : INIT_MONEY
+            });
+            
+            // push to database
+            YTK.db.dbSet(userID, playerObj);
+            
+            // update message box
+            addConnectedPlayer();
+          }
+        }
+      });
+    }
+  },
   bindJoinBtn = function() {
-    var $userTxtBox = $('.username', '.user-form'),
-        $joinBtn = $('.join-btn'),
+    var $joinBtn = $('.join-btn'),
         userName;
 
     $joinBtn.on('click', function() {
-      userName = $userTxtBox.val().trim();
+      handleJoinGame();
+    });
 
-      if (userName !== '') {
-        hideDiv($('.user-form'));
-        database.ref().once('value', function(snapshot) {
-
-          if (isGameFull(snapshot)) { // game is full
-            console.log('game is full dude');
-          }
-
-          else {
-            var userID = getAvailableUserID(snapshot);
-
-            if (userID !== -1) {
-              // init player object
-              setPlayerObj({
-                id        : userID,
-                name      : userName,
-                startTime : Date.now(),
-                money     : INIT_MONEY
-              });
-              
-              // push to database
-              YTK.db.dbSet(userID, playerObj);
-              
-              // update message box
-              addConnectedPlayer();
-            }
-          }
-        });
+    $('.username', '.user-form').on('keyup', function(e) {
+      if (e.keyCode == 13) {
+        handleJoinGame();
       }
     });
   },
