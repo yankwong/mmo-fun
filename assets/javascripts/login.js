@@ -150,7 +150,9 @@ YTK.poker = (function() {
       $(this).addClass('picked');
       playerObj.avatar = parseInt($(this).attr('data-id'));
       showDiv($('.user-form', '.login-container'));
+      hideDiv($avatarBtn.not('.picked'));
     });
+
   },
   // remove user table from DB if a user disconnected
   bindDisconnect = function() {
