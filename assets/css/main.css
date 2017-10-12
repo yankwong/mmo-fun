@@ -9,13 +9,13 @@
   background-image: url("../images/sprite/got.png"); }
   .avatar:hover {
     border: 2px solid gold; }
-  .avatar.avatar-1 {
+  .avatar.avatar-0 {
     background-position: -50px -7px; }
-  .avatar.avatar-2 {
+  .avatar.avatar-1 {
     background-position: -234px -7px; }
-  .avatar.avatar-3 {
+  .avatar.avatar-2 {
     background-position: -638px -7px; }
-  .avatar.avatar-4 {
+  .avatar.avatar-3 {
     background-position: -800px -7px; }
 
 .login-container .user-name {

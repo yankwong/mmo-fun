@@ -7,6 +7,7 @@ YTK.poker = (function() {
   playerObj = {
     id        : -1,
     name      : '',
+    avatar    : -1,
     startTime : '',
     money     : 0,
     ready     : false
@@ -75,6 +76,7 @@ YTK.poker = (function() {
       connectedPlayers.push({
         id        : node.id,
         name      : node.name,
+        avatar    : node.avatar,
         startTime : node.startTime,
         money     : node.money,
         ready     : node.ready
@@ -108,6 +110,7 @@ YTK.poker = (function() {
             setPlayerObj({
               id        : userID,
               name      : userName,
+              avatar    : playerObj.avatar,
               startTime : Date.now(),
               money     : INIT_MONEY,
               ready     : false
@@ -116,7 +119,7 @@ YTK.poker = (function() {
             // push to database
             YTK.db.dbSet(userID, playerObj);
 
-            // start updating connected table with DB events
+            // start DB event listener
             bindDBListener();
           }
         }
@@ -139,7 +142,9 @@ YTK.poker = (function() {
   bindAvatarSelect = function() {
     var $avatarBtn = $('.avatar', '.avatar-select');
 
+
     $avatarBtn.on('click', function() {
+      playerObj.avatar = parseInt($(this).attr('data-id'));
       showDiv($('.user-form', '.login-container'));
     });
   },
