@@ -52,5 +52,7 @@
       float: right;
       padding: 0.2rem .6rem;
       margin-left: 5px; }
+    .login-container .connected-players .player .status {
+      float: right; }
 
 /*# sourceMappingURL=main.css.map */

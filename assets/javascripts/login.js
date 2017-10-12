@@ -14,7 +14,7 @@ YTK.poker = (function() {
   },
   connectedPlayers = [],
   countDownStarted = false,
-  startCounter = COUNTDOWN_TIMER,
+  startCounter,
 
   showDiv = function($div) {
     $div.removeClass('hidden');
@@ -39,6 +39,8 @@ YTK.poker = (function() {
   addConnectedPlayer = function(pObj) {
     var $pRow   = $('<div class="player player-' + pObj.id +'" data-pid="' + pObj.id + '">'),
         $pName  = $('<span class="name">' + pObj.name + '</span>'),
+        $pWait  = $('<span class="status hidden">Waiting...</span>'),
+        $pReady = $('<span class="status hidden">Ready!</span>'),
         $pDC    = $('<button class="btn btn-outline-danger dc-btn">Quit</button>'),
         $pBtn   = $('<button class="btn btn-outline-success ready-btn" data-id="' + playerObj.id +'">Ready</button>');
 
@@ -47,6 +49,14 @@ YTK.poker = (function() {
       if (playerObj.id == pObj.id) {
         $pRow.append($pBtn);
         $pRow.append($pDC);
+      }
+      else {
+        if (pObj.ready) {
+          $pRow.append($pReady);
+        }
+        else {
+          $pRow.append($pWait);  
+        }
       }
 
       $('.connected-players').append($pRow);
@@ -66,6 +76,9 @@ YTK.poker = (function() {
 
         // update firebase
         YTK.db.dbSet(playerObj.id, playerObj);
+
+        // start countdown
+        startCountdown();
       }
     });
   },
@@ -75,19 +88,22 @@ YTK.poker = (function() {
     snapshot.forEach(function(snap) {
       var node = snap.val();
 
-      connectedPlayers.push({
-        id        : node.id,
-        name      : node.name,
-        avatar    : node.avatar,
-        startTime : node.startTime,
-        money     : node.money,
-        ready     : node.ready
-      });
+      if (node.hasOwnProperty('id')) {
+        connectedPlayers.push({
+          id        : node.id,
+          name      : node.name,
+          avatar    : node.avatar,
+          startTime : node.startTime,
+          money     : node.money,
+          ready     : node.ready
+        });
 
-      addConnectedPlayer({
-        id    : node.id,
-        name  : node.name
-      });
+        addConnectedPlayer({
+          id    : node.id,
+          name  : node.name,
+          ready : node.ready
+        });
+      }
     });
   },
   handleJoinGame = function() {
@@ -147,11 +163,13 @@ YTK.poker = (function() {
     var $avatarBtn = $('.avatar', '.avatar-select');
 
     $avatarBtn.on('click', function() {
-      $(this).addClass('picked');
+      var $this = $(this);
+
+      $this.addClass('picked');
       playerObj.avatar = parseInt($(this).attr('data-id'));
       showDiv($('.user-form', '.login-container'));
       hideDiv($avatarBtn.not('.picked'));
-      $(this).off('click');
+      $this.off('click');
     });
 
   },
@@ -189,30 +207,42 @@ YTK.poker = (function() {
   resetStartCounter = function() {
     startCounter = COUNTDOWN_TIMER;
   },
-  countDownListener = function() {
-    // if counter exist
-    // countDownStarted = true, also update startCounter
-    // else countDownStarted = false
 
-    // on another function, set a listener to firebase counter
-    // var $counterDiv = $('.start-counter', '.network-info')
-    // $counterDiv.html(startCounter);
+  showPlayersStatus = function() {
+    var $status = $('.status', '.network-info');
+
+    showDiv($status);
+  },
+  countDownListener = function(snapshot) {
+    if (snapshot.hasChild('countdown')) { // if counter exist
+      $('.start-counter', '.network-info').html(snapshot.val()['countdown']);
+      showPlayersStatus();
+    }
   },
   startCountdown = function() {
     var countdownInterval;
 
-    if (!countDownStarted) {
-      // push a counter to firebase
-      YTK.db.dbSet('countdown', startCounter);
-      countdownInterval = setInterval(function() {
-      if (startCounter === 0) {
-        clearInterval(countdownInterval);
-      }
-        startCounter --;
-      }, 1000);
+    database.ref().once('value', function(snapshot) {
+      if (!snapshot.hasChild('countdown')) {
 
-      resetStartCounter();
-    }
+        resetStartCounter();
+
+        countdownInterval = setInterval(function() {
+
+          YTK.db.dbSet('countdown', startCounter);
+
+          if (startCounter === 0) {
+            clearInterval(countdownInterval);
+            resetStartCounter();
+            triggerGameStart();
+          }
+          else {
+            startCounter --;  
+          }
+
+        }, 1000);    
+      }
+    });
   },
   updateRdyBtn = function() {
     var $rdyBtns = $('.ready-btn');
@@ -236,15 +266,16 @@ YTK.poker = (function() {
 
       updateRdyBtn();
 
-      if (hasReadyPlayers(snapshot)) {
-        startCountdown();
-      }
+      countDownListener(snapshot);
     });
   },
   bindQuitBtn = function() {
     $('.connected-players').on('click', '.dc-btn', function() {
       location.reload();
     });
+  },
+  triggerGameStart = function(){
+    $( document ).trigger("gameStarted");
   },
   initLogin = function() {
     bindDisconnect();
@@ -259,7 +290,7 @@ YTK.poker = (function() {
     // when the game is ready to start, trigger an event
     // for the rest of the page to listen to
     /*
-    $( document ).trigger( "gameStarted", [ "bim", "baz" ] );
+    
     */
   };
 
