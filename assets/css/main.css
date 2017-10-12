@@ -37,13 +37,16 @@
 .login-container .connected-players {
   height: 200px;
   width: 100%;
-  border: 1px solid red;
+  border: 1px solid black;
   margin: 20px; }
   .login-container .connected-players .player {
-    display: flex;
-    justify-content: space-between;
     padding: 5px 10px; }
-    .login-container .connected-players .player .ready-btn {
+    .login-container .connected-players .player .dc-btn {
+      float: right;
       padding: 0.2rem .6rem; }
+    .login-container .connected-players .player .ready-btn {
+      float: right;
+      padding: 0.2rem .6rem;
+      margin-left: 5px; }
 
 /*# sourceMappingURL=main.css.map */

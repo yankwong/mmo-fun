@@ -1,3 +1,4 @@
+//TODO: QA login/dc logic
 var YTK = YTK || {};
 
 YTK.poker = (function() {
@@ -8,7 +9,10 @@ YTK.poker = (function() {
     name      : '',
     startTime : '',
     money     : 0,
+    ready     : false
   },
+  connectedPlayers = [],
+  startCounter = COUNTDOWN_TIMER,
   showDiv = function($div) {
     $div.removeClass('hidden');
   },
@@ -29,29 +33,68 @@ YTK.poker = (function() {
   setPlayerObj = function(userObj) {
     playerObj = userObj;
   },
-  addConnectedPlayer = function() {
-    var $pRow   = $('<div class="player player-' + playerObj.id +'">'),
-        $pName  = $('<span class="name">' + playerObj.name + '</span>'),
-        $pBtn   = $('<button class="btn ready-btn" disabled data-id="' + playerObj.id +'">Ready</button>');
+  addConnectedPlayer = function(pObj) {
+    var $pRow   = $('<div class="player player-' + pObj.id +'" data-pid="' + pObj.id + '">'),
+        $pName  = $('<span class="name">' + pObj.name + '</span>'),
+        $pDC    = $('<button class="btn btn-outline-danger dc-btn">Quit</button>'),
+        $pBtn   = $('<button class="btn btn-outline-success ready-btn" data-id="' + playerObj.id +'">Ready</button>');
 
-        $pRow.append($pName);
+      $pRow.append($pName);
+
+      if (playerObj.id == pObj.id) {
         $pRow.append($pBtn);
+        $pRow.append($pDC);
+      }
 
-        $('.connected-players').append($pRow);
+      $('.connected-players').append($pRow);
+  },
+  bindDCBtn = function() {
+    $('.connected-players').on('click', 'dc-btn', function() {
+      if (playerObj.id !== -1) {
+        YTK.db.dbRemoveNode(playerObj.id);
+      }
+    });
   },
   bindReadyBtn = function() {
-    $('.connected-players').on('click', 'ready-btn', function() {
-      // make sure there is more than 1 player
-      // update firebase 
-      // start a timer for all players
+    $('.connected-players').on('click', '.ready-btn', function() {
+
+      if (connectedPlayers.length > 1) {
+        playerObj.ready = true;
+
+        // update firebase
+        YTK.db.dbSet(playerObj.id, playerObj);
+      }
+    });
+  },
+  getOnlinePlayers = function(snapshot) {
+
+    connectedPlayers = [];
+    snapshot.forEach(function(snap) {
+      var node = snap.val();
+
+      connectedPlayers.push({
+        id        : node.id,
+        name      : node.name,
+        startTime : node.startTime,
+        money     : node.money,
+        ready     : node.ready
+      });
+
+      addConnectedPlayer({
+        id    : node.id,
+        name  : node.name
+      });
     });
   },
   handleJoinGame = function() {
-    userName = $('.username', '.user-form').val().trim();
+    var userName = $('.username', '.user-form').val().trim();
 
     if (userName !== '') {
       hideDiv($('.user-form'));
       database.ref().once('value', function(snapshot) {
+
+        //display all players currently logged in
+        getOnlinePlayers(snapshot);
 
         if (isGameFull(snapshot)) { // game is full
           console.log('game is full dude');
@@ -66,22 +109,22 @@ YTK.poker = (function() {
               id        : userID,
               name      : userName,
               startTime : Date.now(),
-              money     : INIT_MONEY
+              money     : INIT_MONEY,
+              ready     : false
             });
             
             // push to database
             YTK.db.dbSet(userID, playerObj);
-            
-            // update message box
-            addConnectedPlayer();
+
+            // start updating connected table with DB events
+            bindDBListener();
           }
         }
       });
     }
   },
   bindJoinBtn = function() {
-    var $joinBtn = $('.join-btn'),
-        userName;
+    var $joinBtn = $('.join-btn');
 
     $joinBtn.on('click', function() {
       handleJoinGame();
@@ -109,13 +152,67 @@ YTK.poker = (function() {
       return undefined;
     });
   },
+  clearDiv = function($div) {
+    $div.empty();
+  },
+  hasReadyPlayers = function(snapshot) {
+
+    var retVal = false;
+
+    snapshot.forEach(function(snap) {
+      var node = snap.val();
+
+      if (node.ready == true) {
+        retVal = true;
+      }
+    });
+
+    return retVal;
+  },
+
+  resetStartCounter = function() {
+    startCounter = COUNTDOWN_TIMER;
+  },
+  startCountdown = function() {
+    var $counterDiv = $('.start-counter', '.network-info'),
+        countdownInterval;
+
+    countdownInterval = setInterval(function() {
+      if (startCounter === 0) {
+        clearInterval(countdownInterval);
+      }
+      $counterDiv.html(startCounter);
+      startCounter --;
+    }, 1000);
+
+    resetStartCounter();
+  },
+  bindDBListener = function() {
+    database.ref().on('value', function(snapshot) {
+      console.log('db value changed', snapshot.val());
+      clearDiv($('.connected-players', '.login-container'));
+
+      getOnlinePlayers(snapshot);
+
+      if (hasReadyPlayers(snapshot)) {
+        startCountdown();
+      }
+    });
+  },
+  bindQuitBtn = function() {
+    $('.connected-players').on('click', '.dc-btn', function() {
+      location.reload();
+    });
+  },
   initLogin = function() {
     bindDisconnect();
+    bindQuitBtn();
 
     // login page
     bindAvatarSelect();
     bindJoinBtn();
     bindReadyBtn();
+    bindDCBtn();
 
     // when the game is ready to start, trigger an event
     // for the rest of the page to listen to

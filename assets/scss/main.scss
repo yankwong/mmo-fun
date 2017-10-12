@@ -57,15 +57,19 @@
   .connected-players {
     height: 200px;
     width: 100%;
-    border: 1px solid red;
+    border: 1px solid black;
     margin: 20px;
 
     .player {
-      display: flex;
-      justify-content: space-between;
       padding: 5px 10px;
+      .dc-btn {
+        float: right;
+        padding: 0.2rem .6rem;
+      }
       .ready-btn {
-          padding: 0.2rem .6rem;
+        float: right;
+        padding: 0.2rem .6rem;
+        margin-left: 5px;
       }
     }
   }
