@@ -1,2 +1,3 @@
 var MAX_PLAYERS = 5,
-    INIT_MONEY  = 100;
+    INIT_MONEY  = 100,
+    COUNTDOWN_TIMER = 15;
