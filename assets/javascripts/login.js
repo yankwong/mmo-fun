@@ -13,7 +13,6 @@ YTK.poker = (function() {
     ready     : false
   },
   connectedPlayers = [],
-  countDownStarted = false,
   startCounter,
 
   showDiv = function($div) {
@@ -47,7 +46,9 @@ YTK.poker = (function() {
       $pRow.append($pName);
 
       if (playerObj.id == pObj.id) {
-        $pRow.append($pBtn);
+        if (!playerObj.ready) {
+          $pRow.append($pBtn);
+        }
         $pRow.append($pDC);
       }
       else {
@@ -182,6 +183,8 @@ YTK.poker = (function() {
       // if a "ready" player disconnect, remove counter from DB
       if (playerObj.ready === true) {
         YTK.db.dbRemoveNode('countdown');
+
+        // also need to set the 'ready' value of everyone to be false
       }
       return undefined;
     });
