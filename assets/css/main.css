@@ -17,6 +17,8 @@
     background-position: -638px -7px; }
   .avatar.avatar-3 {
     background-position: -800px -7px; }
+  .avatar.picked {
+    border: 2px solid gold; }
 
 .login-container .user-name {
   justify-content: center; }

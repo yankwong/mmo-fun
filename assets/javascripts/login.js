@@ -142,8 +142,8 @@ YTK.poker = (function() {
   bindAvatarSelect = function() {
     var $avatarBtn = $('.avatar', '.avatar-select');
 
-
     $avatarBtn.on('click', function() {
+      $(this).addClass('picked');
       playerObj.avatar = parseInt($(this).attr('data-id'));
       showDiv($('.user-form', '.login-container'));
     });
@@ -192,12 +192,27 @@ YTK.poker = (function() {
 
     resetStartCounter();
   },
+  updateRdyBtn = function() {
+    var $rdyBtns = $('.ready-btn');
+    if (connectedPlayers.length === 1) {
+      $rdyBtns.prop('disabled', true);
+      $rdyBtns.addClass('btn-outline-secondary');
+      $rdyBtns.removeClass('btn-outline-success');
+    }
+    else {
+      $rdyBtns.prop('disabled', false);
+      $rdyBtns.removeClass('btn-outline-secondary');
+      $rdyBtns.addClass("btn-outline-success");
+    }
+  },
   bindDBListener = function() {
     database.ref().on('value', function(snapshot) {
       console.log('db value changed', snapshot.val());
       clearDiv($('.connected-players', '.login-container'));
 
       getOnlinePlayers(snapshot);
+
+      updateRdyBtn();
 
       if (hasReadyPlayers(snapshot)) {
         startCountdown();

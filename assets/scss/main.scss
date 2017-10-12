@@ -25,6 +25,10 @@
   &.avatar-3 {
     background-position: -800px -7px;
   }
+
+  &.picked {
+    border: 2px solid gold;
+  }
 }
 
 .login-container {
