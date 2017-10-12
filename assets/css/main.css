@@ -33,6 +33,8 @@
   .login-container .avatar-select .avatar {
     margin: 5px;
     cursor: pointer; }
+    .login-container .avatar-select .avatar.picked {
+      cursor: default; }
   .login-container .avatar-select .title {
     text-align: center;
     margin: 20px; }

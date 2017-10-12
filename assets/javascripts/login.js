@@ -151,6 +151,7 @@ YTK.poker = (function() {
       playerObj.avatar = parseInt($(this).attr('data-id'));
       showDiv($('.user-form', '.login-container'));
       hideDiv($avatarBtn.not('.picked'));
+      $(this).off('click');
     });
 
   },
