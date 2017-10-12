@@ -13,7 +13,9 @@ YTK.poker = (function() {
     ready     : false
   },
   connectedPlayers = [],
+  countDownStarted = false,
   startCounter = COUNTDOWN_TIMER,
+
   showDiv = function($div) {
     $div.removeClass('hidden');
   },
@@ -105,6 +107,8 @@ YTK.poker = (function() {
         else {
           var userID = getAvailableUserID(snapshot);
 
+          showDiv($('.connected-players'));
+
           if (userID !== -1) {
             // init player object
             setPlayerObj({
@@ -154,6 +158,10 @@ YTK.poker = (function() {
       if (playerObj.id !== -1) {
         YTK.db.dbRemoveNode(playerObj.id);
       }
+      // if a "ready" player disconnect, remove counter from DB
+      if (playerObj.ready === true) {
+        YTK.db.dbRemoveNode('countdown');
+      }
       return undefined;
     });
   },
@@ -178,19 +186,30 @@ YTK.poker = (function() {
   resetStartCounter = function() {
     startCounter = COUNTDOWN_TIMER;
   },
-  startCountdown = function() {
-    var $counterDiv = $('.start-counter', '.network-info'),
-        countdownInterval;
+  countDownListener = function() {
+    // if counter exist
+    // countDownStarted = true, also update startCounter
+    // else countDownStarted = false
 
-    countdownInterval = setInterval(function() {
+    // on another function, set a listener to firebase counter
+    // var $counterDiv = $('.start-counter', '.network-info')
+    // $counterDiv.html(startCounter);
+  },
+  startCountdown = function() {
+    var countdownInterval;
+
+    if (!countDownStarted) {
+      // push a counter to firebase
+      YTK.db.dbSet('countdown', startCounter);
+      countdownInterval = setInterval(function() {
       if (startCounter === 0) {
         clearInterval(countdownInterval);
       }
-      $counterDiv.html(startCounter);
-      startCounter --;
-    }, 1000);
+        startCounter --;
+      }, 1000);
 
-    resetStartCounter();
+      resetStartCounter();
+    }
   },
   updateRdyBtn = function() {
     var $rdyBtns = $('.ready-btn');
@@ -237,11 +256,7 @@ YTK.poker = (function() {
     // when the game is ready to start, trigger an event
     // for the rest of the page to listen to
     /*
-    $.event.trigger({
-      type: "newMessage",
-      message: "Hello World!",
-      time: new Date()
-    });
+    $( document ).trigger( "gameStarted", [ "bim", "baz" ] );
     */
   };
 
