@@ -3,7 +3,7 @@
 }
 
 .avatar {
-  border: 2px solid black;
+  border: 2px solid transparent;
   width: 175px;
   height: 175px;
   background-repeat: no-repeat;
@@ -69,7 +69,9 @@ body {
     justify-content: center;
 
     .avatar {
-      margin: 5px;
+      margin: 0 auto;
+      margin-bottom: 20px;
+      background-color: transparent;
       cursor: pointer;
 
       &.picked {
