@@ -2,7 +2,7 @@
   display: none !important; }
 
 .avatar {
-  border: 2px solid black;
+  border: 2px solid transparent;
   width: 175px;
   height: 175px;
   background-repeat: no-repeat;
@@ -44,7 +44,9 @@ body {
   display: flex;
   justify-content: center; }
   .login-container .avatar-select .avatar {
-    margin: 5px;
+    margin: 0 auto;
+    margin-bottom: 20px;
+    background-color: transparent;
     cursor: pointer; }
     .login-container .avatar-select .avatar.picked {
       cursor: default; }
