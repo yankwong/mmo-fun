@@ -85,13 +85,16 @@ YTK.login = (function() {
       }
     });
   },
+  isPlayerNode = function(node) { // is this Node a player node?
+    return node.hasOwnProperty('host');
+  },
   getOnlinePlayers = function(snapshot) {
 
     connectedPlayers = [];
     snapshot.forEach(function(snap) {
       var node = snap.val();
 
-      if (node.hasOwnProperty('id')) {
+      if (isPlayerNode(node)) { 
         connectedPlayers.push({
           id        : node.id,
           name      : node.name,
