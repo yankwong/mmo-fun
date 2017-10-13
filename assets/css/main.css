@@ -69,6 +69,8 @@ body {
       float: right; }
 
 .game-container {
-  background-image: url("../images/felt-wallpaper.jpg"); }
+  background-image: url("../images/felt-wallpaper.jpg");
+  background-repeat: no-repeat;
+  min-height: 100vh; }
 
 /*# sourceMappingURL=main.css.map */

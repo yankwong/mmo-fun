@@ -104,10 +104,11 @@ body {
       }
     }
   }
-
-
 }
 
-.game-container{
+.game-container {
   background-image: url('../images/felt-wallpaper.jpg');
-} 
+  background-repeat: no-repeat;
+  min-height: 100vh;
+
+}
