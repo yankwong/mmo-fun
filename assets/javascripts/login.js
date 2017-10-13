@@ -10,7 +10,8 @@ YTK.login = (function() {
     avatar    : -1,
     startTime : '',
     money     : 0,
-    ready     : false
+    ready     : false,
+    host      : false
   },
   countdownInterval = null,
   connectedPlayers = [],
@@ -97,13 +98,15 @@ YTK.login = (function() {
           avatar    : node.avatar,
           startTime : node.startTime,
           money     : node.money,
-          ready     : node.ready
+          ready     : node.ready,
+          host      : node.host,
         });
 
         addConnectedPlayer({
           id    : node.id,
           name  : node.name,
-          ready : node.ready
+          ready : node.ready,
+          host  : node.host,
         });
       }
     });
@@ -135,7 +138,8 @@ YTK.login = (function() {
               avatar    : playerObj.avatar,
               startTime : Date.now(),
               money     : INIT_MONEY,
-              ready     : false
+              ready     : false,
+              host      : false,
             });
             
             // push to database
@@ -203,6 +207,12 @@ YTK.login = (function() {
           YTK.db.dbRemoveNode('countdown');
           setAllUnready(); 
         }
+
+        // end the game session of the disconnecting player is the host of the game
+        // TODO: shift host when that happens
+        if (playerObj.host === true) {
+          YTK.db.dbRemoveNode('game');
+        }
       }
       
       return undefined;
@@ -247,16 +257,35 @@ YTK.login = (function() {
       $('.start-counter', '.network-info').html('');
     }
   },
+  getHostID = function() {
+    var hostID = -1;
+    for (var i=0; i < connectedPlayers.length; i++) {
+      if (connectedPlayers[i].host) {
+        hostID = connectedPlayers[i].id;
+        break;
+      }
+    }
+    if (hostID === -1) {
+      hostID = connectedPlayers[0].id;
+    }
+    return hostID;
+  },
   gameCanStart = function() {
-    return connectedPlayers.length > 1;
+    return connectedPlayers.length > 1 && getHostID() >= 0;
+  },
+  setToHost = function() {
+    playerObj.host = true;
+    YTK.db.dbUpdate(playerObj.id, {host : true});
   },
   startCountdown = function() {
     database.ref().once('value', function(snapshot) {
       if (!snapshot.hasChild('countdown')) {
 
+        setToHost();  // set this player to host
+
         resetStartCounter();
 
-        YTK.db.dbSet('countdown', startCounter);
+        // YTK.db.dbSet('countdown', startCounter);
 
         countdownInterval = setInterval(function() {
 
@@ -265,10 +294,15 @@ YTK.login = (function() {
           if (startCounter === 0) {
             clearInterval(countdownInterval);
             resetStartCounter();
+
+            YTK.db.dbRemoveNode('countdown');
             
             //double check to make sure more than 1 players are ready
             if (gameCanStart()) {
-              YTK.db.dbSet('game', true);
+              YTK.db.dbSet('game', {
+                hostID    : getHostID(),
+                startTime : Date.now(),
+              });
             }
           }
           else {
@@ -296,6 +330,7 @@ YTK.login = (function() {
     if (!gameStarted && snapshot.hasChild('game')) {
       gameStarted = true;
       triggerGameStart();
+      database.ref().off('value'); //turn off main login listener
     }
   },
   bindDBListener = function() {
@@ -305,6 +340,7 @@ YTK.login = (function() {
       getOnlinePlayers(snapshot);
       updateRdyBtn();
       gameStartListener(snapshot);
+      console.log('(debug) db change from login.js');
     });
   },
   bindQuitBtn = function() {
@@ -313,7 +349,7 @@ YTK.login = (function() {
     });
   },
   triggerGameStart = function(){
-    $( document ).trigger("gameStarted");
+    $( document ).trigger("gameStarted", playerObj.id);
   },
   initLogin = function() {
     bindDisconnect();
