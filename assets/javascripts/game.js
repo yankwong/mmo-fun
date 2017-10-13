@@ -3,6 +3,13 @@
 // enough players are logged in and ready
 
 $(document).on('gameStarted', function() {
-  // codes that trigger on the start of game
+  
   console.log('wow game started!');
+
+  // hide login container
+  $('.login-container').addClass('hidden');
+  
+  // show game container
+  $('.game-container').removeClass('hidden');
+
 });

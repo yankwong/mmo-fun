@@ -14,7 +14,7 @@ YTK.poker = (function() {
   },
   connectedPlayers = [],
   startCounter,
-
+  gameStarted = false,
   showDiv = function($div) {
     $div.removeClass('hidden');
   },
@@ -222,6 +222,9 @@ YTK.poker = (function() {
       showPlayersStatus();
     }
   },
+  gameCanStart = function() {
+    return true;
+  },
   startCountdown = function() {
     var countdownInterval;
 
@@ -237,7 +240,11 @@ YTK.poker = (function() {
           if (startCounter === 0) {
             clearInterval(countdownInterval);
             resetStartCounter();
-            triggerGameStart();
+            
+            //double check to make sure more than 1 players are ready
+            if (gameCanStart()) {
+              YTK.db.dbSet('game', true);
+            }
           }
           else {
             startCounter --;  
@@ -260,6 +267,12 @@ YTK.poker = (function() {
       $rdyBtns.addClass("btn-outline-success");
     }
   },
+  gameStartListener = function(snapshot) {
+    if (!gameStarted && snapshot.hasChild('game')) {
+      gameStarted = true;
+      triggerGameStart();
+    }
+  },
   bindDBListener = function() {
     database.ref().on('value', function(snapshot) {
       console.log('db value changed', snapshot.val());
@@ -270,6 +283,8 @@ YTK.poker = (function() {
       updateRdyBtn();
 
       countDownListener(snapshot);
+
+      gameStartListener(snapshot);
     });
   },
   bindQuitBtn = function() {
@@ -289,12 +304,6 @@ YTK.poker = (function() {
     bindJoinBtn();
     bindReadyBtn();
     bindDCBtn();
-
-    // when the game is ready to start, trigger an event
-    // for the rest of the page to listen to
-    /*
-    
-    */
   };
 
   return {
