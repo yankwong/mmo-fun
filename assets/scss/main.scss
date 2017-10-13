@@ -37,7 +37,21 @@
   }
 }
 
+body {
+  background-image: url('../images/storm.gif');
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.title{
+  color: white;
+  font-family: 'MedievalSharp', cursive;
+}
+
 .login-container {
+
+  // background-image: url('../images/storm.gif');
+
   .user-name {
     justify-content: center;
 
@@ -91,7 +105,9 @@
     }
   }
 
-  .game-container{
-    background-image: url('../images/felt-wallpaper.jpg');
-  }
+
 }
+
+.game-container{
+  background-image: url('../images/felt-wallpaper.jpg');
+} 

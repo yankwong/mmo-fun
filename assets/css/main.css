@@ -24,6 +24,15 @@
   .avatar.picked {
     border: 2px solid gold; }
 
+body {
+  background-image: url("../images/storm.gif");
+  background-repeat: no-repeat;
+  background-size: cover; }
+
+.title {
+  color: white;
+  font-family: 'MedievalSharp', cursive; }
+
 .login-container .user-name {
   justify-content: center; }
   .login-container .user-name .user-form {
@@ -58,7 +67,8 @@
       margin-left: 5px; }
     .login-container .connected-players .player .status {
       float: right; }
-.login-container .game-container {
+
+.game-container {
   background-image: url("../images/felt-wallpaper.jpg"); }
 
 /*# sourceMappingURL=main.css.map */
