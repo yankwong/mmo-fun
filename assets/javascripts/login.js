@@ -1,7 +1,7 @@
 //TODO: QA login/dc logic
 var YTK = YTK || {};
 
-YTK.poker = (function() {
+YTK.login = (function() {
   var 
   database = firebase.database(),
   playerObj = {
@@ -238,9 +238,7 @@ YTK.poker = (function() {
   countDownListener = function(snapshot) {
 
     if (snapshot.hasChild('countdown')) { // if counter exist
-      
       playerObj.ready = snapshot.val()[playerObj.id].ready;
-      console.log('counting down!!!', playerObj);
       $('.start-counter', '.network-info').html(snapshot.val()['countdown']);
       showPlayersStatus();
     }
@@ -302,9 +300,7 @@ YTK.poker = (function() {
   },
   bindDBListener = function() {
     database.ref().on('value', function(snapshot) {
-      console.log('db value changed', snapshot.val());
       clearDiv($('.connected-players', '.login-container'));
-
       countDownListener(snapshot);
       getOnlinePlayers(snapshot);
       updateRdyBtn();
@@ -336,5 +332,5 @@ YTK.poker = (function() {
 })();
 
 $(function() {
-  YTK.poker.initLogin();
+  YTK.login.initLogin();
 });

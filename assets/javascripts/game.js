@@ -1,15 +1,30 @@
-// this file contain codes for the actual game
-// a "gameStarted" event will be triggered from login.js when
-// enough players are logged in and ready
+var YTK = YTK || {};
+
+YTK.game = (function() {
+  var 
+  database = firebase.database(),
+  showDiv = function($div) {
+    $div.removeClass('hidden');
+  },
+  hideDiv = function($div) {
+    $div.addClass('hidden');
+  },
+  initGame = function() {
+    console.log('wow game started!');
+
+    // hide login container
+    hideDiv($('.login-container'));
+
+    // show game container
+    showDiv($('.game-container'));
+  };
+
+
+  return {
+    start : initGame
+  }
+})();
 
 $(document).on('gameStarted', function() {
-  
-  console.log('wow game started!');
-
-  // hide login container
-  $('.login-container').addClass('hidden');
-  
-  // show game container
-  $('.game-container').removeClass('hidden');
-
+  YTK.game.start();
 });
