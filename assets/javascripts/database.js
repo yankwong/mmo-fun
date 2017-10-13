@@ -16,6 +16,9 @@ YTK.db = (function() {
   dbSet = function(node, obj) {
     database.ref('/' + node).set(obj);
   },
+  dbUpdate = function(node, obj) {
+    database.ref('/' + node).update(obj);
+  },
   dbRemoveNode = function(node) {
     database.ref('/' + node).remove();
   };
@@ -25,6 +28,7 @@ YTK.db = (function() {
     dbRemoveItem  : dbRemoveItem,
     dbBind        : dbBindListener,
     dbSet         : dbSet,
-    dbRemoveNode  : dbRemoveNode
+    dbRemoveNode  : dbRemoveNode,
+    dbUpdate      : dbUpdate
   }
 })();

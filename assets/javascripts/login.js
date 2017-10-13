@@ -12,6 +12,7 @@ YTK.poker = (function() {
     money     : 0,
     ready     : false
   },
+  countdownInterval = null,
   connectedPlayers = [],
   startCounter,
   gameStarted = false,
@@ -46,7 +47,7 @@ YTK.poker = (function() {
       $pRow.append($pName);
 
       if (playerObj.id == pObj.id) {
-        if (!playerObj.ready) {
+        if (!pObj.ready) {
           $pRow.append($pBtn);
         }
         $pRow.append($pDC);
@@ -174,18 +175,36 @@ YTK.poker = (function() {
     });
 
   },
+  setAllUnready = function() {
+    database.ref().once('value', function(snapshot) {
+      snapshot.forEach(function(snap) {
+        var node = snap.val();
+
+        if (node.hasOwnProperty('id') && node.ready === true) {
+          node.ready = false;
+          YTK.db.dbUpdate(node.id, node);
+        }
+      });
+    });
+  },
   // remove user table from DB if a user disconnected
   bindDisconnect = function() {
     $(window).bind("beforeunload", function() {
+      
       if (playerObj.id !== -1) {
-        YTK.db.dbRemoveNode(playerObj.id);
-      }
-      // if a "ready" player disconnect, remove counter from DB
-      if (playerObj.ready === true) {
-        YTK.db.dbRemoveNode('countdown');
 
-        // also need to set the 'ready' value of everyone to be false
+        YTK.db.dbRemoveNode(playerObj.id);
+
+        if (countdownInterval !== null) {
+          clearInterval(countdownInterval);  
+        }
+
+        if (playerObj.ready === true) {
+          YTK.db.dbRemoveNode('countdown');
+          setAllUnready(); 
+        }
       }
+      
       return undefined;
     });
   },
@@ -217,21 +236,29 @@ YTK.poker = (function() {
     showDiv($status);
   },
   countDownListener = function(snapshot) {
+
     if (snapshot.hasChild('countdown')) { // if counter exist
+      
+      playerObj.ready = snapshot.val()[playerObj.id].ready;
+      console.log('counting down!!!', playerObj);
       $('.start-counter', '.network-info').html(snapshot.val()['countdown']);
       showPlayersStatus();
     }
+    else {
+      playerObj.ready = false;
+      $('.start-counter', '.network-info').html('');
+    }
   },
   gameCanStart = function() {
-    return true;
+    return connectedPlayers.length > 1;
   },
   startCountdown = function() {
-    var countdownInterval;
-
     database.ref().once('value', function(snapshot) {
       if (!snapshot.hasChild('countdown')) {
 
         resetStartCounter();
+
+        YTK.db.dbSet('countdown', startCounter);
 
         countdownInterval = setInterval(function() {
 
@@ -278,12 +305,9 @@ YTK.poker = (function() {
       console.log('db value changed', snapshot.val());
       clearDiv($('.connected-players', '.login-container'));
 
-      getOnlinePlayers(snapshot);
-
-      updateRdyBtn();
-
       countDownListener(snapshot);
-
+      getOnlinePlayers(snapshot);
+      updateRdyBtn();
       gameStartListener(snapshot);
     });
   },
