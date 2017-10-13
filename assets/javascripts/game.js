@@ -86,7 +86,7 @@ YTK.game = (function() {
           money     : node.money,
           ready     : node.ready,
           host      : node.host,
-          hand      : hand,
+          hand      : node.hand || '',
         });  
       }
     });
