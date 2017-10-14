@@ -20,8 +20,11 @@ YTK.game = (function() {
     community : '[]',
     communityShown : false,
   },
+  stateObj = {  // keep track of various state of the program
+    canPutFakeCard    : true, // never reset
+    communityDrawFree : true, // reset
+  },
   cardAPIFree = true,
-  communityDrawFree = true,
   connectedPlayers = [],
   database = firebase.database(),
   showDiv = function($div) {
@@ -153,11 +156,15 @@ YTK.game = (function() {
       putCard($communityCards, result.cards[i].code);
     }
 
-    playerObj.community = JSON.stringify(communityArray)
-    cardAPIFree = true
-    playerObj.communityShown = true
-
-
+    playerObj.community = JSON.stringify(communityArray);
+    cardAPIFree = true;
+    playerObj.communityShown = true;
+  },
+  putFakeCards = function($div, total) {    
+    for (var i=0; i<total; i++) {
+      var $fakeCard = $('<div class="poker-card"><img src="assets/images/card-face-down.png" class="fake-card"></div>');
+      $div.append($fakeCard);
+    }
   },
   // main function to determine what to do in each round
   gameRoundListener = function(snapshot) {
@@ -182,17 +189,28 @@ YTK.game = (function() {
         }
       }
       else if (allHaveHand()) {
+
         YTK.db.dbUpdate('game', {round : 1});
-        if (isHost() && cardAPIFree) {
+
+        // put two fake cards on table
+        if (stateObj.canPutFakeCard) {
+          stateObj.canPutFakeCard = false;
+
+          for (var i=1; i < connectedPlayers.length; i++) {
+            putFakeCards($('.seat.player-' + i), 2);
+          }  
+        }
+        // HOST: draw commuinty card 
+        else if (isHost() && cardAPIFree) {
           cardAPIFree = false;
           YTK.cards.drawCards(deckObj.id, 3, function(result) {
             communityDraw(result);
             YTK.db.dbUpdate('game', {communityHand : result})
-          })
+          });
         }
       }
     }
-    // ROUND 1 and up
+    // ROUND 1: first deal of the commuinty deck
     else if (dbGameRound === 1) {
       console.log('%c--- ROUND 1 ---', 'font-weight: bold; color: gold');
 
@@ -200,15 +218,15 @@ YTK.game = (function() {
         updateDBDeck();
       } 
       else {
-        if (!playerObj.communityShown && communityDrawFree) {
+        if (!playerObj.communityShown && stateObj.communityDrawFree) {
 
-          communityDrawFree = false;
+          stateObj.communityDrawFree = false;
 
           database.ref('/game').once('value', function(snap) {
             if (snap.hasChild('communityHand')) {
               communityDraw(snap.val()['communityHand']);
             }
-            communityDrawFree = true;
+            stateObj.communityDrawFree = true;
           });
 
         }
