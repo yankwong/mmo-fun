@@ -1,25 +1,11 @@
+$shadow:
+-1px -1px 0 #000,
+1px -1px 0 #000,
+-1px 1px 0 #000,
+1px 1px 0 #000;
+
 .hidden {
   display: none !important;
-}
-
-.page-loader {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: white;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  .fa-stack {
-    font-size: 60px;
-    .fa-usd {
-      color: gold;
-    }
-  }
 }
 
 .avatar {
@@ -27,29 +13,29 @@
   width: 175px;
   height: 175px;
   background-repeat: no-repeat;
-  background-image: url('../images/sprite/got.png');
+  background-image: url('../images/sprite/avatars.jpg');
 
   &:hover {
     border: 2px solid gold;
   }
 
   &.avatar-0 {
-    background-position: -50px -7px;
+    background-position: -935px -330px;
   }
   &.avatar-1 {
-    background-position: -234px -7px;
+    background-position: -560px -775px;
   }
   &.avatar-2 {
-    background-position: -629px -1px;
+    background-position: -560px -1245px;
   }
   &.avatar-3 {
-    background-position: -800px -7px;
+    background-position: -1310px -770px;
   }
   &.avatar-4 {
-    background-position: -40px -604px;
+    background-position: -560px -330px;
   }
   &.avatar-5{
-    background-position: -620px -380px;
+    background-position: -1310px -335px;
   }
 
   &.picked {
@@ -57,20 +43,28 @@
   }
 }
 
+.start-counter{
+  color: white;
+}
+
 body {
-  background-image: url('../images/storm.gif');
+  background-image: url('../images/giphy.gif');
   background-repeat: no-repeat;
   background-size: cover;
 }
 
 .title{
   color: white;
-  font-family: 'MedievalSharp', cursive;
+  font-family: 'Saira Extra Condensed', sans-serif;
+  padding-bottom: 2%;
+  }
+
+input::placeholder{
+  color: white;
+  text-shadow: $shadow;
 }
 
 .login-container {
-
-  // background-image: url('../images/storm.gif');
 
   .user-name {
     justify-content: center;
@@ -80,9 +74,14 @@ body {
 
       .username {
         width: 70%;
+        text-align: center;
         padding: 0 10px;
+        background-color: rgba(0, 0, 0, 0.1);
+        color: white;
       }
     }
+
+    padding-bottom: 10%;
   }
   .avatar-select {
     display: flex;
@@ -90,7 +89,7 @@ body {
 
     .avatar {
       margin: 0 auto;
-      margin-bottom: 20px;
+      margin-bottom: 30%;
       background-color: transparent;
       cursor: pointer;
 
@@ -102,13 +101,16 @@ body {
     .title {
       text-align: center;
       margin: 20px;
+      text-shadow: $shadow;
     }
   }
   .connected-players {
     height: 200px;
-    width: 100%;
-    border: 1px solid black;
-    margin: 20px;
+    width: 60%;
+    color: gold;
+    text-shadow: $shadow;
+    margin: 0 auto;
+    margin-bottom: 30%;
 
     .player {
       padding: 5px 10px;
@@ -120,10 +122,132 @@ body {
         float: right;
         padding: 0.2rem .6rem;
         margin-left: 5px;
+        color: green;
       }
       .status {
         float: right;
       }
     }
   }
+}
+
+#loader {
+  bottom: 0;
+  height: 175px;
+  left: 0;
+  margin: auto;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 175px;
+}
+#loader {
+  bottom: 0;
+  height: 175px;
+  left: 0;
+  margin: auto;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 175px;
+}
+#loader .dot {
+  bottom: 0;
+  height: 100%;
+  left: 0;
+  margin: auto;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 87.5px;
+}
+#loader .dot::before {
+  border-radius: 100%;
+  content: "";
+  height: 87.5px;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  transform: scale(0);
+  width: 87.5px;
+}
+#loader .dot:nth-child(7n+1) {
+  transform: rotate(45deg);
+}
+#loader .dot:nth-child(7n+1)::before {
+  animation: 0.8s linear 0.1s normal none infinite running load;
+  background: #00ff80 none repeat scroll 0 0;
+}
+#loader .dot:nth-child(7n+2) {
+  transform: rotate(90deg);
+}
+#loader .dot:nth-child(7n+2)::before {
+  animation: 0.8s linear 0.2s normal none infinite running load;
+  background: #00ffea none repeat scroll 0 0;
+}
+#loader .dot:nth-child(7n+3) {
+  transform: rotate(135deg);
+}
+#loader .dot:nth-child(7n+3)::before {
+  animation: 0.8s linear 0.3s normal none infinite running load;
+  background: #00aaff none repeat scroll 0 0;
+}
+#loader .dot:nth-child(7n+4) {
+  transform: rotate(180deg);
+}
+#loader .dot:nth-child(7n+4)::before {
+  animation: 0.8s linear 0.4s normal none infinite running load;
+  background: #0040ff none repeat scroll 0 0;
+}
+#loader .dot:nth-child(7n+5) {
+  transform: rotate(225deg);
+}
+#loader .dot:nth-child(7n+5)::before {
+  animation: 0.8s linear 0.5s normal none infinite running load;
+  background: #2a00ff none repeat scroll 0 0;
+}
+#loader .dot:nth-child(7n+6) {
+  transform: rotate(270deg);
+}
+#loader .dot:nth-child(7n+6)::before {
+  animation: 0.8s linear 0.6s normal none infinite running load;
+  background: #9500ff none repeat scroll 0 0;
+}
+#loader .dot:nth-child(7n+7) {
+  transform: rotate(315deg);
+}
+#loader .dot:nth-child(7n+7)::before {
+  animation: 0.8s linear 0.7s normal none infinite running load;
+  background: magenta none repeat scroll 0 0;
+}
+#loader .dot:nth-child(7n+8) {
+  transform: rotate(360deg);
+}
+#loader .dot:nth-child(7n+8)::before {
+  animation: 0.8s linear 0.8s normal none infinite running load;
+  background: #ff0095 none repeat scroll 0 0;
+}
+#loader .lading {
+  background-image: url("../images/loading.gif");
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
+  bottom: -40px;
+  height: 20px;
+  left: 0;
+  position: absolute;
+  right: 0;
+  width: 180px;
+}
+@keyframes load {
+100% {
+  opacity: 0;
+  transform: scale(1);
+}
+}
+@keyframes load {
+100% {
+  opacity: 0;
+  transform: scale(1);
+}
 }

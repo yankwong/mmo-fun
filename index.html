@@ -9,8 +9,7 @@
   <meta property="og:description" content="Toy MMO Program" />
 
   <link rel="icon" href="assets/images/favicon.png" type="image/x-icon" />
-  <link href="https://fonts.googleapis.com/css?family=MedievalSharp" rel="stylesheet">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M"
+  <link href="https://fonts.googleapis.com/css?family=Saira+Extra+Condensed" rel="stylesheet">  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M"
     crossorigin="anonymous">
   <link rel="stylesheet" href="assets/font-awesome/css/font-awesome.min.css">
   <link rel="stylesheet" type="text/css" href="assets/css/main.css">
@@ -21,10 +20,19 @@
 <body>
   <!-- Login -->
   <div class="page-loader hidden">
-    <span class="fa-stack fa-lg">
-      <i class="fa fa-circle-o-notch fa-spin fa-stack-2x"></i>
-      <i class="fa fa-usd fa-stack-1x"></i>
-    </span>
+      <div class="row">
+          <div id="loader">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="lading"></div>
+          </div>
+      </div>
   </div>
   <div class="container login-container">
     <div class="row avatar-select">
@@ -52,13 +60,13 @@
     </div>
     <div class="row user-name">
       <div class="col-12 user-form hidden">
-        <input type="text" name="username" class="username" placeholder="Please input your game handle">
-        <button class="btn btn-primary join-btn">Join</button>
+        <input type="text" name="username" class="username" placeholder="Input your game handle"><br><br>
+        <button class="btn btn-success join-btn">Join</button>
       </div>
+      <div class="start-counter"></div>
     </div>
     <div class="row network-info">
-      <div class="start-counter"></div>
-      <div class="connected-players hidden"></div>
+      <div class="connected-players card special-card hidden"></div>
     </div>
   </div>
 
