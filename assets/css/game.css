@@ -31,9 +31,11 @@
       width: 10%; }
     .game-container .seat.player-4 {
       width: 10%; }
-  .game-container .commuity-area {
+  .game-container .community-area {
     border: 1px solid red;
     width: 35%; }
+    .game-container .community-area .poker-card {
+      width: 100px; }
   .game-container .poker-card {
     display: inline-block; }
   .game-container .player-0 .hand {

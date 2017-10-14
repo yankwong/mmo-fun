@@ -150,7 +150,7 @@ YTK.game = (function() {
   communityDraw = function(result) {
     var communityArray = [],
       $communityCards = $('.community-area')
-
+console.log('!!! community drawing');
     for (var i = 0; i < result.cards.length; i++) {
       communityArray.push(result.cards[i].code);
       putCard($communityCards, result.cards[i].code);
@@ -200,8 +200,9 @@ YTK.game = (function() {
             putFakeCards($('.seat.player-' + i), 2);
           }  
         }
+        
         // HOST: draw commuinty card 
-        else if (isHost() && cardAPIFree) {
+        if (isHost() && cardAPIFree) {
           cardAPIFree = false;
           YTK.cards.drawCards(deckObj.id, 3, function(result) {
             communityDraw(result);
@@ -218,6 +219,7 @@ YTK.game = (function() {
         updateDBDeck();
       } 
       else {
+        console.log('round1: ', stateObj.communityDrawFree)
         if (!playerObj.communityShown && stateObj.communityDrawFree) {
 
           stateObj.communityDrawFree = false;
