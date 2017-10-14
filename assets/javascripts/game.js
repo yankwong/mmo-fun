@@ -18,6 +18,7 @@ YTK.game = (function() {
     host      : false,
     hand      : '[]',
     community : '[]',
+    communityShown : false,
   },
   cardAPIFree = true,
   connectedPlayers = [],
@@ -147,15 +148,14 @@ YTK.game = (function() {
       $communityCards = $('.community-area')
 
     for (var i = 0; i < result.cards.length; i++) {
-      console.log("testtesteest")
       communityArray.push(result.cards[i].code);
       putCard($communityCards, result.cards[i].code);
     }
 
     playerObj.community = JSON.stringify(communityArray)
-    YTK.db.dbUpdate('game', {communityHand : playerObj.community});
-
     cardAPIFree = true
+    playerObj.communityShown = true
+
 
   },
   // main function to determine what to do in each round
@@ -193,15 +193,20 @@ YTK.game = (function() {
     }
     // ROUND 1 and up
     else if (dbGameRound === 1) {
+      console.log('hello')
       if (isHost()) {
         updateDBDeck();
-      } else if (!isHost()) {
+      } else if (!playerObj.communityShown) {
+        console.log("not communityShown")
           var communityResult;
           var database = firebase.database()
           database.ref('/game').once('value', function(snap) {
             communityResult = snap.val().communityHand
           })
           console.log(communityResult)
+          if (communityResult !== undefined) {
+            communityDraw(communityResult)
+          }
       }
       console.log('%c--- ROUND 1 ---', 'font-weight: bold; color: gold');
 
