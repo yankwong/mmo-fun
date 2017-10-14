@@ -5,7 +5,8 @@ YTK.game = (function() {
   deckObj = {
     id : '',
     shuffled : false,
-    remaining : 52
+    remaining : 52,
+    community: null
   },
   playerObj = {
     id        : -1,
@@ -16,6 +17,7 @@ YTK.game = (function() {
     ready     : false,
     host      : false,
     hand      : '[]',
+    community : '[]',
   },
   cardAPIFree = true,
   connectedPlayers = [],
@@ -140,6 +142,22 @@ YTK.game = (function() {
       });
     });
   },
+  communityDraw = function(result) {
+    var communityArray = [],
+      $communityCards = $('.community-area')
+
+    for (var i = 0; i < result.cards.length; i++) {
+      console.log("testtesteest")
+      communityArray.push(result.cards[i].code);
+      putCard($communityCards, result.cards[i].code);
+    }
+
+    playerObj.community = JSON.stringify(communityArray)
+    YTK.db.dbUpdate('game', {communityHand : playerObj.community});
+
+    cardAPIFree = true
+
+  },
   // main function to determine what to do in each round
   gameRoundListener = function(snapshot) {
     var gameNode = snapshot.val()['game'],
@@ -164,12 +182,26 @@ YTK.game = (function() {
       }
       else if (allHaveHand()) {
         YTK.db.dbUpdate('game', {round : 1});
+        if (isHost() && cardAPIFree) {
+          cardAPIFree = false;
+          YTK.cards.drawCards(deckObj.id, 3, function(result) {
+            communityDraw(result);
+            YTK.db.dbUpdate('game', {communityHand : result})
+          })
+        }
       }
     }
     // ROUND 1 and up
     else if (dbGameRound === 1) {
       if (isHost()) {
         updateDBDeck();
+      } else if (!isHost()) {
+          var communityResult;
+          var database = firebase.database()
+          database.ref('/game').once('value', function(snap) {
+            communityResult = snap.val().communityHand
+          })
+          console.log(communityResult)
       }
       console.log('%c--- ROUND 1 ---', 'font-weight: bold; color: gold');
 
