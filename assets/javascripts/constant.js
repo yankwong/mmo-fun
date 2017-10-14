@@ -1,0 +1,4 @@
+var MAX_PLAYERS = 5,
+    INIT_MONEY  = 100,
+    COUNTDOWN_TIMER = 10,
+    TOTAL_DECK = 1;

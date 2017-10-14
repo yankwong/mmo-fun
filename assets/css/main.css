@@ -1,4 +1,94 @@
+.hidden {
+  display: none !important; }
+
+.page-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: white;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center; }
+  .page-loader .fa-stack {
+    font-size: 60px; }
+    .page-loader .fa-stack .fa-usd {
+      color: gold; }
+
+.avatar {
+  border: 2px solid transparent;
+  width: 175px;
+  height: 175px;
+  background-repeat: no-repeat;
+  background-image: url("../images/sprite/got.png"); }
+  .avatar:hover {
+    border: 2px solid gold; }
+  .avatar.avatar-0 {
+    background-position: -50px -7px; }
+  .avatar.avatar-1 {
+    background-position: -234px -7px; }
+  .avatar.avatar-2 {
+    background-position: -629px -1px; }
+  .avatar.avatar-3 {
+    background-position: -800px -7px; }
+  .avatar.avatar-4 {
+    background-position: -40px -604px; }
+  .avatar.avatar-5 {
+    background-position: -620px -380px; }
+  .avatar.picked {
+    border: 2px solid gold; }
+
 body {
-  color: black; }
+  background-image: url("../images/storm.gif");
+  background-repeat: no-repeat;
+  background-size: cover; }
+
+.title {
+  color: white;
+  font-family: 'MedievalSharp', cursive; }
+
+.login-container .user-name {
+  justify-content: center; }
+  .login-container .user-name .user-form {
+    text-align: center; }
+    .login-container .user-name .user-form .username {
+      width: 70%;
+      padding: 0 10px; }
+.login-container .avatar-select {
+  display: flex;
+  justify-content: center; }
+  .login-container .avatar-select .avatar {
+    margin: 0 auto;
+    margin-bottom: 20px;
+    background-color: transparent;
+    cursor: pointer; }
+    .login-container .avatar-select .avatar.picked {
+      cursor: default; }
+  .login-container .avatar-select .title {
+    text-align: center;
+    margin: 20px; }
+.login-container .connected-players {
+  height: 200px;
+  width: 100%;
+  border: 1px solid black;
+  margin: 20px; }
+  .login-container .connected-players .player {
+    padding: 5px 10px; }
+    .login-container .connected-players .player .dc-btn {
+      float: right;
+      padding: 0.2rem .6rem; }
+    .login-container .connected-players .player .ready-btn {
+      float: right;
+      padding: 0.2rem .6rem;
+      margin-left: 5px; }
+    .login-container .connected-players .player .status {
+      float: right; }
+
+.game-container {
+  background-image: url("../images/felt-wallpaper.jpg");
+  background-repeat: no-repeat;
+  min-height: 100vh; }
 
 /*# sourceMappingURL=main.css.map */
