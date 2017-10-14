@@ -1,0 +1,45 @@
+.game-container {
+  background-image: url("../images/felt-wallpaper.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; }
+  .game-container .top-row {
+    min-height: 20vh;
+    width: 100%;
+    justify-content: center; }
+  .game-container .mid-row {
+    min-height: 20vh;
+    justify-content: space-between; }
+  .game-container .bot-row {
+    min-height: 20vh;
+    border: 1px solid gold; }
+  .game-container .seat {
+    border: 1px solid black; }
+    .game-container .seat.player-0 {
+      width: 100%;
+      text-align: center; }
+    .game-container .seat.player-1 {
+      width: 20%;
+      margin-right: 5%; }
+    .game-container .seat.player-2 {
+      width: 20%;
+      margin-left: 5%; }
+    .game-container .seat.player-3 {
+      width: 10%; }
+    .game-container .seat.player-4 {
+      width: 10%; }
+  .game-container .commuity-area {
+    border: 1px solid red;
+    width: 35%; }
+  .game-container .poker-card {
+    display: inline-block; }
+  .game-container .player-0 .hand {
+    width: 100%;
+    display: inline-block; }
+  .game-container .player-0 .poker-card {
+    width: 100px; }
+
+/*# sourceMappingURL=game.css.map */

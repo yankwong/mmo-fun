@@ -1,0 +1,64 @@
+.game-container {
+  background-image: url('../images/felt-wallpaper.jpg');
+  background-repeat: no-repeat;
+  background-size: cover;
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  .top-row {
+    min-height: 20vh;
+    width: 100%;
+    justify-content: center;
+  }
+  .mid-row {
+    min-height: 20vh;
+    justify-content: space-between;
+  }
+  .bot-row {
+    min-height: 20vh;
+    border: 1px solid gold;
+  }
+
+  .seat {
+    border: 1px solid black;
+
+    &.player-0 {
+      width: 100%;
+      text-align: center;
+    }
+    &.player-1 {
+      width: 20%;
+      margin-right: 5%;
+    }
+    &.player-2 {
+      width: 20%;
+      margin-left: 5%;
+    }
+    &.player-3 {
+      width: 10%;
+    }
+    &.player-4 {
+      width: 10%; 
+    }
+  }
+  .commuity-area {
+    border: 1px solid red;
+    width: 35%;
+  }
+
+  .poker-card {
+    display: inline-block;
+  }
+  .player-0 {
+    .hand {
+      width: 100%;
+      display: inline-block;
+    }
+    .poker-card {
+      width: 100px;
+    }
+  }
+}

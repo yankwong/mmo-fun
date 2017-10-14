@@ -30,6 +30,7 @@ YTK.game = (function() {
     return node.hasOwnProperty('host');
   },
   updateDeckObj = function(obj) {
+    console.log('... writing deck', obj);
     deckObj.id        = obj.id;
     deckObj.shuffled  = obj.shuffled;
     deckObj.remaining = obj.remaining;
@@ -59,15 +60,17 @@ YTK.game = (function() {
   },
   initialDraw = function(result) {
     if (result.success) {
-      updateDeckObj({
-        id : result.deck_id,
-        shuffled : result.shuffled,
-        remaining : result.remaining
-      });
-      var handArray = [];
+      // updateDeckObj({
+      //   id : result.deck_id,
+      //   shuffled : result.shuffled,
+      //   remaining : result.remaining
+      // });
+      var handArray = [],
+          $selfHand = $('.hand', '.player-0');
       // 1. update the user's hand
       for (var i = 0; i < result.cards.length; i++) {
         handArray.push(result.cards[i].code);
+        putCard($selfHand, result.cards[i].code);
       }
       playerObj.hand = JSON.stringify(handArray);
 
@@ -75,7 +78,7 @@ YTK.game = (function() {
       YTK.db.dbUpdate(playerObj.id, {hand : playerObj.hand});
 
       // update firebase with deck info
-      YTK.db.dbSet('deck', deckObj);
+      // YTK.db.dbSet('deck', deckObj);
 
       cardAPIFree = true;
     }
@@ -123,10 +126,28 @@ YTK.game = (function() {
       return -1;
     }
   },
-  gameRoundListener = function(snapshot) { // listen to the 'round' attr in '/game'
+  putCard = function($div, cardCode) {
+    var $card = $('<div class="poker-card"><img src="' + YTK.cards.getImg(cardCode) + '" class="card-img"></div>');
+    $div.append($card);
+  },
+  updateDBDeck = function() {
+    YTK.cards.getDeckStat(deckObj.id, function(result) {
+      console.log('updating db deck', result);
+      YTK.db.dbSet('deck', {
+        id        : result.deck_id, 
+        shuffled  : result.shuffled,
+        remaining : result.remaining
+      });
+    });
+  },
+  // main function to determine what to do in each round
+  gameRoundListener = function(snapshot) {
     var gameNode = snapshot.val()['game'],
         dbGameRound = getDBGameRound(gameNode);
 
+    // ROUND 0: player draw two cards
+    // firebase is updated with player's hand
+    // firebase is updated with new deck info
     if (dbGameRound === 0) {
       console.log('%c--- ROUND 0 ---', 'font-weight: bold; color: gold');
 
@@ -145,8 +166,22 @@ YTK.game = (function() {
         YTK.db.dbUpdate('game', {round : 1});
       }
     }
+    // ROUND 1 and up
     else if (dbGameRound === 1) {
+      if (isHost()) {
+        updateDBDeck();
+      }
       console.log('%c--- ROUND 1 ---', 'font-weight: bold; color: gold');
+
+      // pop-up modal to let player pick an action
+      // ?? is it turn based?, like is there an order of who act first?
+
+      // notice the modal has a local timer, when it runs out it's auto "pass"
+
+      // if a player have <= 0 money, he lose the game and can no longer do action
+      // when it goes to their turn it auto pass
+
+      // at the end of each round, updateDBDeck()
     }
   },
   setDeckListener = function(snapshot) {

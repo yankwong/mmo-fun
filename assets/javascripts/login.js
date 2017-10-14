@@ -49,10 +49,10 @@ YTK.login = (function() {
       $pRow.append($pName);
 
       if (playerObj.id == pObj.id) {
+        $pRow.append($pDC);
         if (!pObj.ready) {
           $pRow.append($pBtn);
         }
-        $pRow.append($pDC);
       }
       else {
         if (pObj.ready) {
