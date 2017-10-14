@@ -16,6 +16,7 @@ YTK.login = (function() {
   countdownInterval = null,
   connectedPlayers = [],
   startCounter,
+  loginDBListener,
   gameStarted = false,
   showDiv = function($div) {
     $div.removeClass('hidden');
@@ -211,7 +212,7 @@ YTK.login = (function() {
           setAllUnready(); 
         }
 
-        // end the game session of the disconnecting player is the host of the game
+        // end the game session if the disconnecting player is the host of the game
         // TODO: shift host when that happens
         if (playerObj.host === true) {
           YTK.db.dbRemoveNode('game');
@@ -333,17 +334,19 @@ YTK.login = (function() {
     if (!gameStarted && snapshot.hasChild('game')) {
       gameStarted = true;
       triggerGameStart();
-      database.ref().off('value'); //turn off main login listener
+      database.ref().off('value', loginDBListener); //turn off main login listener
     }
   },
   bindDBListener = function() {
-    database.ref().on('value', function(snapshot) {
-      clearDiv($('.connected-players', '.login-container'));
-      countDownListener(snapshot);
-      getOnlinePlayers(snapshot);
-      updateRdyBtn();
-      gameStartListener(snapshot);
-      console.log('(debug) db change from login.js');
+    loginDBListener = database.ref().on('value', function(snapshot) {
+      if (!gameStarted) {
+        clearDiv($('.connected-players', '.login-container'));
+        countDownListener(snapshot);
+        getOnlinePlayers(snapshot);
+        updateRdyBtn();
+        gameStartListener(snapshot);
+        console.log('(DB-Value, login)', snapshot.val());  
+      }
     });
   },
   bindQuitBtn = function() {

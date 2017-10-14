@@ -17,6 +17,7 @@ YTK.game = (function() {
     host      : false,
     hand      : '[]',
   },
+  cardAPIFree = true,
   connectedPlayers = [],
   database = firebase.database(),
   showDiv = function($div) {
@@ -61,18 +62,28 @@ YTK.game = (function() {
   },
   initialDraw = function(result) {
     if (result.success) {
+      updateDeckObj({
+        id : result.deck_id,
+        shuffled : result.shuffled,
+        remaining : result.remaining
+      });
       var handArray = [];
       // 1. update the user's hand
       for (var i = 0; i < result.cards.length; i++) {
         handArray.push(result.cards[i].code);
       }
-      playerObj.deck = JSON.stringify(handArray);
+      playerObj.hand = JSON.stringify(handArray);
 
       // update firebase with player's hand
-      YTK.db.dbUpdate(playerObj.id, {deck : playerObj.deck});
+      YTK.db.dbUpdate(playerObj.id, {hand : playerObj.hand});
+
+      // update firebase with deck info
+      YTK.db.dbSet('deck', deckObj);
+
+      cardAPIFree = true;
     }
   },
-  playerNodesListener = function(snapshot) {
+  updatePlayersArray = function(snapshot) {
     connectedPlayers = [];
     snapshot.forEach(function(snap) {
       var node = snap.val();
@@ -86,16 +97,81 @@ YTK.game = (function() {
           money     : node.money,
           ready     : node.ready,
           host      : node.host,
-          hand      : node.hand || '',
+          hand      : node.hand || '[]',
         });  
       }
     });
-    
+  },
+  haveHand = function(pObj) {
+    return pObj.hasOwnProperty('hand') && JSON.parse(pObj.hand).length > 0;
+  },
+  allHaveHand = function() {
+    var retVal = true;
+    $.each(connectedPlayers, function(index, player) {
+      if (!haveHand(player)) {
+          retVal = false;
+      }
+    });
+
+    return retVal;
+  },
+  playerNodesListener = function(snapshot) {
+    updatePlayersArray(snapshot);
+  },
+  getDBGameRound = function(node) {
+    if (node.hasOwnProperty('round')) {
+      return node.round;
+    }
+    else {
+      return -1;
+    }
+  },
+  gameRoundListener = function(snapshot) { // listen to the 'round' attr in '/game'
+    var gameNode = snapshot.val()['game'],
+        dbGameRound = getDBGameRound(gameNode);
+
+    if (dbGameRound === 0) {
+      console.log('%c--- ROUND 0 ---', 'font-weight: bold; color: gold');
+
+      if (!haveHand(playerObj)) {
+        if (deckObj.id !== '' && cardAPIFree) {
+          cardAPIFree = false;
+          console.log('> drawing 2 cards...', playerObj);
+          YTK.cards.drawCards(deckObj.id, 2, function(result) {
+            initialDraw(result);
+          });      
+        }
+      }
+      else if (allHaveHand()) {
+        YTK.db.dbUpdate('game', {round : 1});
+      }
+    }
+    else if (dbGameRound === 1) {
+      console.log('%c--- ROUND 1 ---', 'font-weight: bold; color: gold');
+    }
+  },
+  setDeckListener = function(snapshot) {
+    var snap = snapshot.val();
+    if (snap.hasOwnProperty('deck')) {
+      updateDeckObj({
+        id        : snap['deck'].id,
+        shuffled  : snap['deck'].shuffled,
+        remaining : snap['deck'].remaining
+      });
+    }
   },
   setDBListener = function() { // listen to all firebase changes
     database.ref().on('value', function(snapshot) {
-      // if everyone have a 'hand' then game start
+      console.log('(DB-Value, game)', snapshot.val());
+
+      // on DB deck change: update local deck
+      setDeckListener(snapshot);
+      
+      // on DB player change: update local players
       playerNodesListener(snapshot);
+
+      // on DB game.round: determine what to do
+      gameRoundListener(snapshot);
     });
   },
   initGame = function(playerID) {
@@ -117,26 +193,20 @@ YTK.game = (function() {
             remaining : result.remaining
           });
 
+          // start of ROUND 0
+          YTK.db.dbUpdate('game', {round : 0});
           // push deck to firebase
           YTK.db.dbSet('deck', deckObj);
 
           // clear the page loader
           clearLoader($('.loader', '.game-container'));
-
-          //--- at this point deck is ready
-          YTK.cards.drawCards(deckObj.id, 2, function(result) {
-            initialDraw(result);
-          });
         }
         else {
           endGame('Error getting a deck');
         }
       });  
     }
-
-    
   };
-
 
   return {
     start : initGame
