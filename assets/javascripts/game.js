@@ -57,9 +57,6 @@ YTK.game = (function() {
   isHost = function() {
     return playerObj.host;
   },
-  clearLoader = function($loader) {
-    hideDiv($loader);
-  },
   initialDraw = function(result) {
     if (result.success) {
       updateDeckObj({
@@ -109,7 +106,7 @@ YTK.game = (function() {
     var retVal = true;
     $.each(connectedPlayers, function(index, player) {
       if (!haveHand(player)) {
-          retVal = false;
+        retVal = false;
       }
     });
 
@@ -132,6 +129,8 @@ YTK.game = (function() {
 
     if (dbGameRound === 0) {
       console.log('%c--- ROUND 0 ---', 'font-weight: bold; color: gold');
+
+      hideDiv($('.page-loader'));
 
       if (!haveHand(playerObj)) {
         if (deckObj.id !== '' && cardAPIFree) {
@@ -175,6 +174,8 @@ YTK.game = (function() {
     });
   },
   initGame = function(playerID) {
+    showDiv($('.page-loader'));
+
     hideDiv($('.login-container'));
     showDiv($('.game-container'));
 
@@ -183,7 +184,6 @@ YTK.game = (function() {
     setDBListener();
 
     if (isHost()) {
-      // open page loader (or unless it's always on)
       YTK.cards.initDeck(TOTAL_DECK, function(result) {
         
         if (result.success) {
@@ -197,9 +197,6 @@ YTK.game = (function() {
           YTK.db.dbUpdate('game', {round : 0});
           // push deck to firebase
           YTK.db.dbSet('deck', deckObj);
-
-          // clear the page loader
-          clearLoader($('.loader', '.game-container'));
         }
         else {
           endGame('Error getting a deck');

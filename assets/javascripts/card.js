@@ -16,7 +16,7 @@ YTK.cards = (function() {
       callback(results);
     })
     .fail(function() {
-      console.log('cardAPI ajax failed');
+      console.log('%ccardAPI ajax failed', 'color: red; font-weight: bold;');
     })
   },
   getDeckStat = function(deckID, callback) {
