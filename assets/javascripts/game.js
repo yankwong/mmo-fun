@@ -21,6 +21,7 @@ YTK.game = (function() {
     communityShown : false,
   },
   cardAPIFree = true,
+  communityDrawFree = true,
   connectedPlayers = [],
   database = firebase.database(),
   showDiv = function($div) {
@@ -193,22 +194,25 @@ YTK.game = (function() {
     }
     // ROUND 1 and up
     else if (dbGameRound === 1) {
-      console.log('hello')
+      console.log('%c--- ROUND 1 ---', 'font-weight: bold; color: gold');
+
       if (isHost()) {
         updateDBDeck();
-      } else if (!playerObj.communityShown) {
-        console.log("not communityShown")
-          var communityResult;
-          var database = firebase.database()
+      } 
+      else {
+        if (!playerObj.communityShown && communityDrawFree) {
+
+          communityDrawFree = false;
+
           database.ref('/game').once('value', function(snap) {
-            communityResult = snap.val().communityHand
-          })
-          console.log(communityResult)
-          if (communityResult !== undefined) {
-            communityDraw(communityResult)
-          }
+            if (snap.hasChild('communityHand')) {
+              communityDraw(snap.val()['communityHand']);
+            }
+            communityDrawFree = true;
+          });
+
+        }
       }
-      console.log('%c--- ROUND 1 ---', 'font-weight: bold; color: gold');
 
       // pop-up modal to let player pick an action
       // ?? is it turn based?, like is there an order of who act first?
