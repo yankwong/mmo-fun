@@ -1,0 +1,8 @@
+.card{
+    height: 314px;
+    width: 226px;
+    perspective: 452px;
+    position: relative;
+    transform-style: ""; 
+}
+
