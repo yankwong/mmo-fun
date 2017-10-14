@@ -33,11 +33,13 @@
       width: 10%; }
   .game-container .community-area {
     border: 1px solid red;
-    width: 35%; }
+    width: 45%; }
     .game-container .community-area .poker-card {
       width: 100px; }
   .game-container .poker-card {
     display: inline-block; }
+    .game-container .poker-card .fake-card {
+      width: 50px; }
   .game-container .player-0 .hand {
     width: 100%;
     display: inline-block; }

@@ -216,6 +216,7 @@ YTK.login = (function() {
         // TODO: shift host when that happens
         if (playerObj.host === true) {
           YTK.db.dbRemoveNode('game');
+          YTK.db.dbRemoveNode('deck');
         }
       }
       

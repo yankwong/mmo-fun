@@ -46,7 +46,7 @@
   }
   .community-area {
     border: 1px solid red;
-    width: 35%;
+    width: 45%;
 
     .poker-card {
       width: 100px;
@@ -55,6 +55,9 @@
 
   .poker-card {
     display: inline-block;
+    .fake-card {
+      width: 50px;
+    }
   }
   .player-0 {
     .hand {
