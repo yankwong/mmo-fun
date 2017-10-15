@@ -73,19 +73,19 @@
     width: 100px; }
   .game-container .avatar {
     max-width: 100%; }
-  .game-container #userActionModal .first-row .btn-bet {
+  .game-container #optionModal .first-row .btn-bet {
     font-size: 30px; }
-  .game-container #userActionModal .first-row .user-money {
+  .game-container #optionModal .first-row .user-money {
     display: inline-block;
     border: 1px solid gold;
     padding: 15px;
     font-weight: bold;
     margin-left: 50px; }
-  .game-container #userActionModal .bet-form {
+  .game-container #optionModal .bet-form {
     padding: 20px 0;
     align-items: center;
     display: flex; }
-    .game-container #userActionModal .bet-form .btn-match {
+    .game-container #optionModal .bet-form .btn-match {
       margin-left: 15px; }
 
 /*# sourceMappingURL=game.css.map */

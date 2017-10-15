@@ -110,7 +110,8 @@
 
 
     <!-- Game choices modal -->
-    <div class="modal fade" id="userActionModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal fade" id="optionModal" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">What do you want to do?</h5>
@@ -119,13 +120,14 @@
             <div class="first-row">
               <button class="btn btn-success btn-bet">Bet</button>
               <div class="user-money">You have: $<span class="amount">100</span></div>
+              <div class="timer"></div>
             </div>
             <div class="bet-form">
-              <button class="btn btn-outline-primary btn-raise">Raise</button>
-              <button class="btn btn-outline-primary btn-match">Match</button>  
-              <input type="text" name="bet-amount" class="bet-amount" placeholder="$$$">
+              <button class="btn btn-outline-primary btn-raise hidden">Raise</button>
+              <button class="btn btn-outline-primary btn-match hidden">Match</button>  
+              <input type="text" name="bet-amount" class="bet-amount hidden" placeholder="$$$">
             </div>
-            <button class="btn btn-warning btn-pass">Pass</button>
+            <button class="btn btn-warning btn-check">Check</button>
             <button class="btn btn-danger btn-fold">Fold</button>
           </div>
         </div>
