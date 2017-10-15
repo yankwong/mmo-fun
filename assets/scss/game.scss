@@ -24,6 +24,24 @@
 
   .seat {
     border: 1px solid black;
+    text-align: center;
+
+    .name {
+      color: white;
+      font-size: 20px;
+      background: rgba(0, 0, 0, 0.5);
+      text-align: center;
+    }
+    .money {
+      color: black;
+      font-size: 20px;
+      background: rgba(255, 232, 13, 0.5);
+      text-align: center;
+    }
+
+    .avatar {
+      margin: 0 auto;
+    }
 
     &.player-0 {
       width: 100%;
@@ -67,5 +85,8 @@
     .poker-card {
       width: 100px;
     }
+  }
+  .avatar {
+    max-width: 100%;
   }
 }

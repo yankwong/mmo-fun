@@ -20,9 +20,12 @@ YTK.game = (function() {
     community : '[]',
     communityShown : false,
   },
+  seats = [], // a 1:1 matching of seat-ID : player-ID
   stateObj = {  // keep track of various state of the program
-    canPutFakeCard    : true, // never reset
-    communityDrawFree : true, // reset
+    canPutFakeCard    : true,   // never reset
+    communityDrawFree : true,   // reset
+    canAssignSeat     : true,   // reset
+    needPlayersStats  : true,   // never reset
   },
   cardAPIFree = true,
   connectedPlayers = [],
@@ -67,11 +70,6 @@ YTK.game = (function() {
   },
   initialDraw = function(result) {
     if (result.success) {
-      // updateDeckObj({
-      //   id : result.deck_id,
-      //   shuffled : result.shuffled,
-      //   remaining : result.remaining
-      // });
       var handArray = [],
           $selfHand = $('.hand', '.player-0');
       // 1. update the user's hand
@@ -83,9 +81,6 @@ YTK.game = (function() {
 
       // update firebase with player's hand
       YTK.db.dbUpdate(playerObj.id, {hand : playerObj.hand});
-
-      // update firebase with deck info
-      // YTK.db.dbSet('deck', deckObj);
 
       cardAPIFree = true;
     }
@@ -150,7 +145,7 @@ YTK.game = (function() {
   communityDraw = function(result) {
     var communityArray = [],
       $communityCards = $('.community-area')
-console.log('!!! community drawing');
+
     for (var i = 0; i < result.cards.length; i++) {
       communityArray.push(result.cards[i].code);
       putCard($communityCards, result.cards[i].code);
@@ -166,18 +161,57 @@ console.log('!!! community drawing');
       $div.append($fakeCard);
     }
   },
+
+  assignSeats = function() {
+    stateObj.canAssignSeat = false;
+    if (seats.length === 0 && connectedPlayers.length > 1) {
+      seats.push(playerObj.id);
+      $.each(connectedPlayers, function(index, player) {
+        if (player.id !== playerObj.id){
+          seats.push(player.id);
+        }
+      });
+    }
+    else {
+      console.log('%cAssign Seat Error', 'font-weight: bold; color: red;');
+    }
+    stateObj.canAssignSeat = true;
+  },
+  putPlayerStat = function(pObj) {
+    var seatID = seats.indexOf(pObj.id),
+        $seat = $('.seat.player-' + seatID);
+
+    $seat.find('.avatar').addClass('avatar-' + pObj.avatar);
+    $seat.find('.name').html(pObj.name);
+    $seat.find('.money').html('<i class="fa fa-usd" aria-hidden="true"></i>' + pObj.money);
+  },
   // main function to determine what to do in each round
   gameRoundListener = function(snapshot) {
     var gameNode = snapshot.val()['game'],
         dbGameRound = getDBGameRound(gameNode);
 
     // ROUND 0: player draw two cards
+    // a seat is assigned to each player
     // firebase is updated with player's hand
     // firebase is updated with new deck info
     if (dbGameRound === 0) {
       console.log('%c--- ROUND 0 ---', 'font-weight: bold; color: gold');
 
       hideDiv($('.page-loader'));
+
+      if (stateObj.canAssignSeat && seats.length === 0) {
+        assignSeats();
+      }
+
+      // update all players stat (except player 0 for now)
+      if (stateObj.needPlayersStats) {
+        stateObj.needPlayersStats = false;
+        for (var i=1; i<seats.length; i++) {
+          var player = connectedPlayers[seats[i]];
+          putPlayerStat(player);
+        }  
+      }
+      
 
       if (!haveHand(playerObj)) {
         if (deckObj.id !== '' && cardAPIFree) {
@@ -200,7 +234,7 @@ console.log('!!! community drawing');
             putFakeCards($('.seat.player-' + i), 2);
           }  
         }
-        
+
         // HOST: draw commuinty card 
         if (isHost() && cardAPIFree) {
           cardAPIFree = false;
