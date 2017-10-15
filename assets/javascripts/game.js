@@ -240,7 +240,7 @@ YTK.game = (function() {
           cardAPIFree = false;
           YTK.cards.drawCards(deckObj.id, 3, function(result) {
             communityDraw(result);
-            YTK.db.dbUpdate('game', {communityHand : result})
+            YTK.db.dbUpdate('game', {communityHand : result, howManySeeCommunity : 1})
           });
         }
       }
@@ -261,6 +261,8 @@ YTK.game = (function() {
           database.ref('/game').once('value', function(snap) {
             if (snap.hasChild('communityHand')) {
               communityDraw(snap.val()['communityHand']);
+              var count = snap.val()['howManySeeCommunity'] + 1
+              YTK.db.dbUpdate('game', {howManySeeCommunity : count})
             }
             stateObj.communityDrawFree = true;
           });
@@ -268,6 +270,12 @@ YTK.game = (function() {
         }
       }
 
+      //Once all see community
+      database.ref('/game/howManySeeCommunity').once('value', function(snap) {
+        if (snap.val() === connectedPlayers.length) {
+          console.log("I AM GOING TO RUN AT THIS POINT IN TIME")
+        }
+      })
       // pop-up modal to let player pick an action
       // ?? is it turn based?, like is there an order of who act first?
 
@@ -278,6 +286,9 @@ YTK.game = (function() {
 
       // at the end of each round, updateDBDeck()
     }
+  },
+  displayChoices = function() {
+
   },
   setDeckListener = function(snapshot) {
     var snap = snapshot.val();
