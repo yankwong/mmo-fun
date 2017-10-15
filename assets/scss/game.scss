@@ -109,4 +109,29 @@
   .avatar {
     max-width: 100%;
   }
+
+  #userActionModal {
+    .first-row {
+      .btn-bet {
+        font-size: 30px;
+      }
+      .user-money {
+        display: inline-block;
+        border: 1px solid gold;
+        padding: 15px;
+        font-weight: bold;
+        margin-left: 50px;
+      }
+    }
+    
+    .bet-form {
+      padding: 20px 0;
+      align-items: center;
+      display: flex;
+
+      .btn-match {
+        margin-left: 15px;
+      }
+    }
+  }
 }

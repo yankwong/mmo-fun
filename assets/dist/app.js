@@ -79,8 +79,8 @@ YTK.db = (function() {
     dbUpdate      : dbUpdate
   }
 })();
-var YTK = YTK || {};
-
+var YTK = YTK || {} ;
+//hello this is a test
 YTK.game = (function() {
   var 
   deckObj = {
@@ -424,6 +424,7 @@ YTK.game = (function() {
 $(document).on('gameStarted', function(e, playerID) {
   YTK.game.start(playerID);
 });
+alert('work')
 //TODO: QA login/dc logic
 var YTK = YTK || {};
 
