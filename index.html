@@ -2,28 +2,38 @@
 <html>
 
 <head>
-  <title>Poker Game-1</title>
+  <title>Poker</title>
   <meta property="og:url" content="https://yankwong.github.io/mmo-fun/" />
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="MMO Fun" />
-  <meta property="og:description" content="Toy MMO Program" />
+  <meta property="og:title" content="Poker" />
+  <meta property="og:description" content="Toy multiplayer game project experimenting with Firebase. Collaborators: @drj613, @yankwong, @yamalik95, @Dismes " />
+  <meta property="og:image" content="https://yankwong.github.io/mmo-fun/assets/images/og_img.jpg" />
 
   <link rel="icon" href="assets/images/favicon.png" type="image/x-icon" />
-  <link href="https://fonts.googleapis.com/css?family=MedievalSharp" rel="stylesheet">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M"
+  <link href="https://fonts.googleapis.com/css?family=Saira+Extra+Condensed" rel="stylesheet">  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M"
     crossorigin="anonymous">
   <link rel="stylesheet" href="assets/font-awesome/css/font-awesome.min.css">
   <link rel="stylesheet" type="text/css" href="assets/css/main.css">
+  <link rel="stylesheet" type="text/css" href="assets/css/game.css">
   
 </head>
 
 <body>
   <!-- Login -->
   <div class="page-loader hidden">
-    <span class="fa-stack fa-lg">
-      <i class="fa fa-circle-o-notch fa-spin fa-stack-2x"></i>
-      <i class="fa fa-usd fa-stack-1x"></i>
-    </span>
+      <div class="row">
+          <div id="loader">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="lading"></div>
+          </div>
+      </div>
   </div>
   <div class="container login-container">
     <div class="row avatar-select">
@@ -51,20 +61,49 @@
     </div>
     <div class="row user-name">
       <div class="col-12 user-form hidden">
-        <input type="text" name="username" class="username" placeholder="Please input your game handle">
-        <button class="btn btn-primary join-btn">Join</button>
+        <input type="text" name="username" class="username" placeholder="Input your game handle"><br><br>
+        <button class="btn btn-success join-btn">Join</button>
       </div>
+      <div class="start-counter"></div>
     </div>
     <div class="row network-info">
-      <div class="start-counter"></div>
-      <div class="connected-players hidden"></div>
+      <div class="connected-players card special-card hidden"></div>
     </div>
   </div>
 
   <!-- Game -->
   <div class="container-fluid game-container hidden">
     <!-- Game frontend code -->
-    WOW THIS IS THE GAME CONTAINER!!! SO GOOOOOD!!!
+    <div class="row top-row">
+      <div class="seat player-1" data-pid="1">
+        <div class="avatar"></div>
+        <div class="name"></div>
+        <div class="money"></div>
+      </div>
+      <div class="seat player-2" data-pid="2">
+        <div class="avatar"></div>
+        <div class="name"></div>
+        <div class="money"></div>
+      </div>
+    </div>
+    <div class="row mid-row">
+      <div class="seat player-3" data-pid="3">
+        <div class="avatar"></div>
+        <div class="name"></div>
+        <div class="money"></div>
+      </div>
+      <div class="community-area"></div>
+      <div class="seat player-4" data-pid="4">
+        <div class="avatar"></div>
+        <div class="name"></div>
+        <div class="money"></div>
+      </div>
+    </div>
+    <div class="row bot-row">
+      <div class="seat player-0" data-pid="0">
+        <div class="hand"></div>
+      </div>
+    </div>
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/4.5.0/firebase.js"></script>
@@ -87,11 +126,7 @@
     crossorigin="anonymous"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1"
     crossorigin="anonymous"></script>
-  <script src="assets/javascripts/database.js"></script>
-  <script src="assets/javascripts/constant.js"></script>
-  <script src="assets/javascripts/login.js"></script>
-  <script src="assets/javascripts/card.js"></script>
-  <script src="assets/javascripts/game.js"></script>
+  <script src="assets/javascripts/app.js"></script>
 </body>
 
 </html>

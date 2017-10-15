@@ -1,3 +1,4 @@
+assets/javascripts/database-config.js
 node_modules
 .sass-cache
 .DS_Store

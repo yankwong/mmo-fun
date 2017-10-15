@@ -49,10 +49,10 @@ YTK.login = (function() {
       $pRow.append($pName);
 
       if (playerObj.id == pObj.id) {
+        $pRow.append($pDC);
         if (!pObj.ready) {
           $pRow.append($pBtn);
         }
-        $pRow.append($pDC);
       }
       else {
         if (pObj.ready) {
@@ -174,11 +174,11 @@ YTK.login = (function() {
 
     $avatarBtn.on('click', function() {
       var $this = $(this);
-
+      $('.title h1').addClass('hidden');
       $this.addClass('picked');
       playerObj.avatar = parseInt($(this).attr('data-id'));
       showDiv($('.user-form', '.login-container'));
-      hideDiv($avatarBtn.not('.picked'));
+      hideDiv($avatarBtn.not('.picked').closest('.col-lg-4'));
       $this.off('click');
     });
 
@@ -216,6 +216,7 @@ YTK.login = (function() {
         // TODO: shift host when that happens
         if (playerObj.host === true) {
           YTK.db.dbRemoveNode('game');
+          YTK.db.dbRemoveNode('deck');
         }
       }
       
@@ -253,12 +254,12 @@ YTK.login = (function() {
 
     if (snapshot.hasChild('countdown')) { // if counter exist
       playerObj.ready = snapshot.val()[playerObj.id].ready;
-      $('.start-counter', '.network-info').html(snapshot.val()['countdown']);
+      $('.start-counter').html(snapshot.val()['countdown']);
       showPlayersStatus();
     }
     else {
       playerObj.ready = false;
-      $('.start-counter', '.network-info').html('');
+      $('.start-counter').html('');
     }
   },
   getHostID = function() {

@@ -1,0 +1,77 @@
+.game-container {
+  background-image: url("../images/felt-wallpaper.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; }
+  .game-container .top-row {
+    min-height: 20vh;
+    width: 100%;
+    justify-content: center; }
+  .game-container .mid-row {
+    min-height: 20vh;
+    justify-content: space-between; }
+  .game-container .bot-row {
+    min-height: 20vh;
+    border: 1px solid gold; }
+  .game-container .seat {
+    border: 1px solid black;
+    text-align: center; }
+    .game-container .seat .name {
+      color: white;
+      font-size: 20px;
+      background: rgba(0, 0, 0, 0.5);
+      text-align: center; }
+    .game-container .seat .money {
+      color: black;
+      font-size: 20px;
+      background: rgba(255, 232, 13, 0.5);
+      text-align: center; }
+    .game-container .seat .avatar {
+      background-image: none;
+      margin: 0 auto; }
+      .game-container .seat .avatar.avatar-0 {
+        background-image: url("../images/sprite/avatars.jpg"); }
+      .game-container .seat .avatar.avatar-1 {
+        background-image: url("../images/sprite/avatars.jpg"); }
+      .game-container .seat .avatar.avatar-2 {
+        background-image: url("../images/sprite/avatars.jpg"); }
+      .game-container .seat .avatar.avatar-3 {
+        background-image: url("../images/sprite/avatars.jpg"); }
+      .game-container .seat .avatar.avatar-4 {
+        background-image: url("../images/sprite/avatars.jpg"); }
+      .game-container .seat .avatar.avatar-5 {
+        background-image: url("../images/sprite/avatars.jpg"); }
+    .game-container .seat.player-0 {
+      width: 100%;
+      text-align: center; }
+    .game-container .seat.player-1 {
+      width: 20%;
+      margin-right: 5%; }
+    .game-container .seat.player-2 {
+      width: 20%;
+      margin-left: 5%; }
+    .game-container .seat.player-3 {
+      width: 10%; }
+    .game-container .seat.player-4 {
+      width: 10%; }
+  .game-container .community-area {
+    border: 1px solid red;
+    width: 45%; }
+    .game-container .community-area .poker-card {
+      width: 100px; }
+  .game-container .poker-card {
+    display: inline-block; }
+    .game-container .poker-card .fake-card {
+      width: 50px; }
+  .game-container .player-0 .hand {
+    width: 100%;
+    display: inline-block; }
+  .game-container .player-0 .poker-card {
+    width: 100px; }
+  .game-container .avatar {
+    max-width: 100%; }
+
+/*# sourceMappingURL=game.css.map */

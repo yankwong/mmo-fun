@@ -20,7 +20,7 @@ YTK.cards = (function() {
     })
   },
   getDeckStat = function(deckID, callback) {
-    var url = 'https://deckofcardsapi.com/api/deck/' + deckID;
+    var url = 'https://deckofcardsapi.com/api/deck/' + deckID + '/';
     callAPI(url, callback);
   },
   initDeck = function(deckTotal, callback) {
