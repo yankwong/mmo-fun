@@ -81,6 +81,12 @@
     padding: 15px;
     font-weight: bold;
     margin-left: 50px; }
+  .game-container #optionModal .pot-total {
+    display: inline-block;
+    margin-left: 50px;
+    border: 1px solid blue;
+    padding: 15px;
+    font-weight: bold; }
   .game-container #optionModal .bet-form {
     padding: 20px 0;
     align-items: center;
