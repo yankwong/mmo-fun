@@ -27,7 +27,7 @@ YTK.game = (function() {
     canAssignSeat     : true,   // reset
     needPlayersStats  : true,   // never reset
   },
-  cardAPIFree = true,
+  cardAPIFree = true, 
   connectedPlayers = [],
   database = firebase.database(),
   showDiv = function($div) {
