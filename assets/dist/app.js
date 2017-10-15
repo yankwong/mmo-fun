@@ -44,7 +44,8 @@ YTK.cards = (function() {
 var MAX_PLAYERS = 5,
     INIT_MONEY  = 100,
     COUNTDOWN_TIMER = 2,
-    TOTAL_DECK = 1;
+    TOTAL_DECK = 1,
+    MODAL_COUNTDOWN = 15;
 // utility object to interact with FireBase
 var YTK = YTK || {};
 
@@ -321,7 +322,7 @@ YTK.game = (function() {
           cardAPIFree = false;
           YTK.cards.drawCards(deckObj.id, 3, function(result) {
             communityDraw(result);
-            YTK.db.dbUpdate('game', {communityHand : result})
+            YTK.db.dbUpdate('game', {communityHand : result, howManySeeCommunity : 1})
           });
         }
       }
@@ -342,6 +343,8 @@ YTK.game = (function() {
           database.ref('/game').once('value', function(snap) {
             if (snap.hasChild('communityHand')) {
               communityDraw(snap.val()['communityHand']);
+              var count = snap.val()['howManySeeCommunity'] + 1
+              YTK.db.dbUpdate('game', {howManySeeCommunity : count})
             }
             stateObj.communityDrawFree = true;
           });
@@ -349,8 +352,15 @@ YTK.game = (function() {
         }
       }
 
-      // pop-up modal to let player pick an action
-      // ?? is it turn based?, like is there an order of who act first?
+      //Once all see community
+      if (communityReady(gameNode)) {
+        var whosTurn = getWhosTurn(gameNode);
+        
+        if (whosTurn === playerObj.id) {
+          // --- !! If it's the current player's turn, display modal
+          initOptionModal(displayOptionModal);
+        }
+      }
 
       // notice the modal has a local timer, when it runs out it's auto "pass"
 
@@ -359,6 +369,52 @@ YTK.game = (function() {
 
       // at the end of each round, updateDBDeck()
     }
+  },
+  getWhosTurn = function(gameNode) {
+    if (gameNode.hasOwnProperty('whosTurn')) {
+      return parseInt(gameNode['whosTurn']);
+    }
+    else {
+      YTK.db.dbUpdate('game', {whosTurn : connectedPlayers[0].id});
+      return -1;
+    }
+  },
+  communityReady = function(gameNode) {
+    return gameNode.howManySeeCommunity === connectedPlayers.length;
+  },
+  displayOptionModal = function() {
+    var $optModal = $('#optionModal');
+    $optModal.on('shown.bs.modal', setupLocalTimer);
+    $optModal.modal('show');
+  },
+  setupLocalTimer = function() {
+    var localTimer,
+        timer   = MODAL_COUNTDOWN,
+        $timer  = $('.timer', '#optionModal');
+
+    localTimer = setInterval(function() {
+      if (timer === 0) {
+        clearInterval(localTimer);
+        console.log('times up! auto press "check"');
+      }
+      $timer.html(timer);
+      timer --;
+    }, 1000);
+  },
+  initOptionModal = function(callback) {
+    var $optionModal = $('#optionModal'),
+        $money    = $('.user-money', '#optionModal'),
+        $betBtn   = $('.btn-bet', '#optionModal'),
+        $checkBtn = $('.btn-check', '#optionModal'),
+        $foldBtn  = $('.btn-fold', '#optionModal');
+
+    $money.html(playerObj.money);    // update user money
+
+    $betBtn.on('click', function() {
+      showDiv($('.bet-amount', 'bet-form'));
+    });
+
+    callback();
   },
   setDeckListener = function(snapshot) {
     var snap = snapshot.val();
@@ -424,7 +480,6 @@ YTK.game = (function() {
 $(document).on('gameStarted', function(e, playerID) {
   YTK.game.start(playerID);
 });
-alert('work')
 //TODO: QA login/dc logic
 var YTK = YTK || {};
 

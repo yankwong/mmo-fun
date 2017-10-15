@@ -271,13 +271,14 @@ YTK.game = (function() {
       }
 
       //Once all see community
-      database.ref('/game/howManySeeCommunity').once('value', function(snap) {
-        if (snap.val() === connectedPlayers.length) {
-          console.log("I AM GOING TO RUN AT THIS POINT IN TIME")
+      if (communityReady(gameNode)) {
+        var whosTurn = getWhosTurn(gameNode);
+        
+        if (whosTurn === playerObj.id) {
+          // --- !! If it's the current player's turn, display modal
+          initOptionModal(displayOptionModal);
         }
-      })
-      // pop-up modal to let player pick an action
-      // ?? is it turn based?, like is there an order of who act first?
+      }
 
       // notice the modal has a local timer, when it runs out it's auto "pass"
 
@@ -287,8 +288,51 @@ YTK.game = (function() {
       // at the end of each round, updateDBDeck()
     }
   },
-  displayChoices = function() {
+  getWhosTurn = function(gameNode) {
+    if (gameNode.hasOwnProperty('whosTurn')) {
+      return parseInt(gameNode['whosTurn']);
+    }
+    else {
+      YTK.db.dbUpdate('game', {whosTurn : connectedPlayers[0].id});
+      return -1;
+    }
+  },
+  communityReady = function(gameNode) {
+    return gameNode.howManySeeCommunity === connectedPlayers.length;
+  },
+  displayOptionModal = function() {
+    var $optModal = $('#optionModal');
+    $optModal.on('shown.bs.modal', setupLocalTimer);
+    $optModal.modal('show');
+  },
+  setupLocalTimer = function() {
+    var localTimer,
+        timer   = MODAL_COUNTDOWN,
+        $timer  = $('.timer', '#optionModal');
 
+    localTimer = setInterval(function() {
+      if (timer === 0) {
+        clearInterval(localTimer);
+        console.log('times up! auto press "check"');
+      }
+      $timer.html(timer);
+      timer --;
+    }, 1000);
+  },
+  initOptionModal = function(callback) {
+    var $optionModal = $('#optionModal'),
+        $money    = $('.user-money', '#optionModal'),
+        $betBtn   = $('.btn-bet', '#optionModal'),
+        $checkBtn = $('.btn-check', '#optionModal'),
+        $foldBtn  = $('.btn-fold', '#optionModal');
+
+    $money.html(playerObj.money);    // update user money
+
+    $betBtn.on('click', function() {
+      showDiv($('.bet-amount', 'bet-form'));
+    });
+
+    callback();
   },
   setDeckListener = function(snapshot) {
     var snap = snapshot.val();
