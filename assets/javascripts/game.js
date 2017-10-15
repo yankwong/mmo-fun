@@ -340,6 +340,7 @@ YTK.game = (function() {
           if( snap.val()['id'] === playerObj.id ) {
             count = snap.val()['money'] - bet
             YTK.db.dbUpdate(snap.val()['id'], {money: count})
+            $('.user-money').html(count)
           }
         }
       })
