@@ -176,8 +176,7 @@ YTK.login = (function() {
       var $this = $(this),
           $loginTitle = $('.title h1', '.login-container');
 
-      $loginTitle.hide('slow');
-      // $('.title h1').addClass('hidden');
+      $loginTitle.fadeOut('slow');
       $this.addClass('picked');
       playerObj.avatar = parseInt($(this).attr('data-id'));
       showDiv($('.user-form', '.login-container'));
