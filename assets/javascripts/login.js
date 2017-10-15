@@ -173,8 +173,11 @@ YTK.login = (function() {
     var $avatarBtn = $('.avatar', '.avatar-select');
 
     $avatarBtn.on('click', function() {
-      var $this = $(this);
-      $('.title h1').addClass('hidden');
+      var $this = $(this),
+          $loginTitle = $('.title h1', '.login-container');
+
+      $loginTitle.hide('slow');
+      // $('.title h1').addClass('hidden');
       $this.addClass('picked');
       playerObj.avatar = parseInt($(this).attr('data-id'));
       showDiv($('.user-form', '.login-container'));
