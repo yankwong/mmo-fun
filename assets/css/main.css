@@ -41,50 +41,52 @@ input::placeholder {
   color: white;
   text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
 
-.login-container .user-name {
-  justify-content: center;
-  padding-bottom: 10%; }
-  .login-container .user-name .user-form {
-    text-align: center; }
-    .login-container .user-name .user-form .username {
-      width: 70%;
+.login-container {
+  min-height: 100vh; }
+  .login-container .user-name {
+    justify-content: center;
+    padding-bottom: 10%; }
+    .login-container .user-name .user-form {
+      text-align: center; }
+      .login-container .user-name .user-form .username {
+        width: 70%;
+        text-align: center;
+        padding: 0 10px;
+        background-color: rgba(0, 0, 0, 0.1);
+        color: white; }
+  .login-container .avatar-select {
+    display: flex;
+    justify-content: center; }
+    .login-container .avatar-select .avatar {
+      margin: 0 auto;
+      margin-bottom: 30%;
+      background-color: transparent;
+      cursor: pointer; }
+      .login-container .avatar-select .avatar.picked {
+        cursor: default; }
+    .login-container .avatar-select .title {
       text-align: center;
-      padding: 0 10px;
-      background-color: rgba(0, 0, 0, 0.1);
-      color: white; }
-.login-container .avatar-select {
-  display: flex;
-  justify-content: center; }
-  .login-container .avatar-select .avatar {
+      margin: 20px;
+      text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
+  .login-container .connected-players {
+    height: 200px;
+    width: 60%;
+    color: gold;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
     margin: 0 auto;
-    margin-bottom: 30%;
-    background-color: transparent;
-    cursor: pointer; }
-    .login-container .avatar-select .avatar.picked {
-      cursor: default; }
-  .login-container .avatar-select .title {
-    text-align: center;
-    margin: 20px;
-    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
-.login-container .connected-players {
-  height: 200px;
-  width: 60%;
-  color: gold;
-  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-  margin: 0 auto;
-  margin-bottom: 30%; }
-  .login-container .connected-players .player {
-    padding: 5px 10px; }
-    .login-container .connected-players .player .dc-btn {
-      float: right;
-      padding: 0.2rem .6rem; }
-    .login-container .connected-players .player .ready-btn {
-      float: right;
-      padding: 0.2rem .6rem;
-      margin-left: 5px;
-      color: green; }
-    .login-container .connected-players .player .status {
-      float: right; }
+    margin-bottom: 30%; }
+    .login-container .connected-players .player {
+      padding: 5px 10px; }
+      .login-container .connected-players .player .dc-btn {
+        float: right;
+        padding: 0.2rem .6rem; }
+      .login-container .connected-players .player .ready-btn {
+        float: right;
+        padding: 0.2rem .6rem;
+        margin-left: 5px;
+        color: green; }
+      .login-container .connected-players .player .status {
+        float: right; }
 
 #loader {
   bottom: 0;
