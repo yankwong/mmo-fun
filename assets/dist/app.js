@@ -45,7 +45,8 @@ var MAX_PLAYERS = 5,
     INIT_MONEY  = 100,
     COUNTDOWN_TIMER = 1,
     TOTAL_DECK = 1,
-    MODAL_COUNTDOWN = 15;
+    MODAL_COUNTDOWN = 15,
+    DEFAULT_ANTE = 5;
 // utility object to interact with FireBase
 var YTK = YTK || {};
 
@@ -354,8 +355,6 @@ YTK.game = (function() {
         }
       }
 
-      //Once all see community
-
       // database.ref('/game').once('value', function(snap) {
       //   if (snap.val()['howManySeeCommunity'] === connectedPlayers.length && !stateObj.seesGameStats) {
       //     stateObj.seesGameStats = true
@@ -371,16 +370,23 @@ YTK.game = (function() {
 
       if (communityReady(gameNode)) {
         var whosTurn = getWhosTurn(gameNode);
+
         if (!stateObj.givenAnte) {
-          stateObj.givenAnte = true
-          var ante= 5;
-          playerMakesBet(ante)
+          stateObj.givenAnte = true;
+          playerMakesBet(DEFAULT_ANTE);
         }
-        if (whosTurn === playerObj.id && !stateObj.seesModal) {
-          stateObj.seesModal = true
-          // --- !! If it's the current player's turn, display modal
-          initOptionModal(displayOptionModal);
-          setTimeout(function(){setGameStatsInModal(gameNode)},200)
+
+        // this will make sure our connectedPlayer is up-to-date
+        if (anteReady()) {
+          updateDBPot(connectedPlayers.length * DEFAULT_ANTE);
+
+          if (whosTurn === playerObj.id && !stateObj.seesModal) {
+            stateObj.seesModal = true;
+          
+            setGameStatsInModal(gameNode);
+
+            initOptionModal(displayOptionModal);
+          }
         }
       }
 
@@ -392,30 +398,52 @@ YTK.game = (function() {
       // at the end of each round, updateDBDeck()
     }
   },
+  anteReady = function(gameNode) {
+    var allPaid = true,
+        afterAnte = INIT_MONEY - DEFAULT_ANTE;
+
+    for (var i=0; i<connectedPlayers.length; i++) {
+      if (connectedPlayers[i]['money'] !== afterAnte) {
+        allPaid = false;
+        break;
+      }
+    }
+    return allPaid;
+  },
+  updateDBPot = function(totPot) {
+    YTK.db.dbUpdate('game', {totalPot :totPot});
+  },
   setGameStatsInModal = function(gameNode) {
-    var statsContainer = $('.bet-form')
-    var initialPot = gameNode.howManySeeCommunity * 5
-    var othersMoney = []
-    YTK.db.dbUpdate('game', {totalPot : initialPot})
-    $('.bet-form').html("Total Pot: "+initialPot )
-    getOthersMoney(othersMoney)
+    var $statsContainer = $('.bet-form', '#optionModal'),
+        othersMoney = [],
+        $potDiv = $('.amount', '.pot-total');
+
+    $potDiv.html(gameNode.totalPot);
+
+    othersMoney = getOthersMoney(othersMoney);
+
     for (var i = 0; i < othersMoney.length; i++) {
-      $('.bet-form').append('||'+othersMoney[i][0]+"'s Money: "+othersMoney[i][1])
+      var $pDiv = $('.p-money.p-' + othersMoney[i].id, '#optionModal');
+      showDiv($pDiv);
+      $pDiv.find('.name').html(othersMoney[i].name);
+      $pDiv.find('.amount').html(othersMoney[i].money);
     }
   },
   getOthersMoney = function(array) {
-    database.ref().once('value', function(snapshot) {
-      snapshot.forEach(function(snap) {
-        if ( isPlayerNode(snap.val()) ) {
-          if ( snap.val()['id'] !== playerObj.id ) {
-            array.push( [ snap.val()['name'], snap.val()['money'] ] )
-          }
-        }
-      })
-    })
-    console.log(array, "HERE IS THE ARRAY YOU ARE LOOKING FOR")
+    var retVal = [];
+
+    $.each(connectedPlayers, function(index, player) {
+      if (player.id !== playerObj.id) {
+        retVal.push( { id : player.id, 
+                       name : player.name,
+                       money : player.money,} );
+      }
+    });
+    console.log(retVal, "HERE IS THE ARRAY YOU ARE LOOKING FOR")
+    return retVal;
   },
   playerMakesBet = function(bet) {
+<<<<<<< HEAD
     database.ref().once('value', function(snapshot) {
       snapshot.forEach(function(snap) {
         if( isPlayerNode(snap.val()) ) {
@@ -427,6 +455,31 @@ YTK.game = (function() {
         }
       })
     })
+=======
+    var count = playerObj.money;
+
+    bet = Math.floor(bet);
+
+    if (playerObj.money >= bet) {
+      count = playerObj.money - bet;
+      playerObj.money = count;
+      YTK.db.dbUpdate(playerObj.id, {money: count})
+    }
+    else {
+      console.log('%cNot enough money to make bet', 'font-weight: bold; color: red;');
+    }
+
+    // database.ref().once('value', function(snapshot) {
+    //   snapshot.forEach(function(snap) {
+    //     if( isPlayerNode(snap.val()) ) {
+    //       if( snap.val()['id'] === playerObj.id ) {
+    //         count = snap.val()['money'] - bet;
+    //         YTK.db.dbUpdate(snap.val()['id'], {money: count})
+    //       }
+    //     }
+    //   })
+    // })
+>>>>>>> 450165602f458d6124800233d42d90f8bfb984d9
   }
   getWhosTurn = function(gameNode) {
     if (gameNode.hasOwnProperty('whosTurn')) {
@@ -442,7 +495,9 @@ YTK.game = (function() {
   },
   displayOptionModal = function() {
     var $optModal = $('#optionModal');
-    $optModal.on('shown.bs.modal', setupLocalTimer);
+    $optModal.on('shown.bs.modal', function() {
+      setupLocalTimer();
+    });
     $optModal.modal('show');
   },
   setupLocalTimer = function() {
@@ -713,8 +768,10 @@ YTK.login = (function() {
     var $avatarBtn = $('.avatar', '.avatar-select');
 
     $avatarBtn.on('click', function() {
-      var $this = $(this);
-      $('.title h1').addClass('hidden');
+      var $this = $(this),
+          $loginTitle = $('.title h1', '.login-container');
+
+      $loginTitle.fadeOut('slow');
       $this.addClass('picked');
       playerObj.avatar = parseInt($(this).attr('data-id'));
       showDiv($('.user-form', '.login-container'));
