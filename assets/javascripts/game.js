@@ -19,7 +19,7 @@ YTK.game = (function() {
     hand      : '[]',
     community : '[]',
     communityShown : false,
-  },
+  }, 
   seats = [], // a 1:1 matching of seat-ID : player-ID
   stateObj = {  // keep track of various state of the program
     canPutFakeCard    : true,   // never reset
