@@ -17,7 +17,7 @@ module.exports = function(grunt) {
           './assets/javascripts/*.js',
           '!./assets/javascripts/database-config.js'
         ],
-        dest: './assets/javascripts/app.js'
+        dest: './assets/dist/app.js'
       }
     },
     watch: {
