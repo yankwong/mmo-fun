@@ -26,6 +26,7 @@ YTK.game = (function() {
     communityDrawFree : true,   // reset
     canAssignSeat     : true,   // reset
     needPlayersStats  : true,   // never reset
+    seesGameStats     : false,  //set to true when game options/stats displayed
   },
   cardAPIFree = true, 
   connectedPlayers = [],
@@ -240,7 +241,7 @@ YTK.game = (function() {
           cardAPIFree = false;
           YTK.cards.drawCards(deckObj.id, 3, function(result) {
             communityDraw(result);
-            YTK.db.dbUpdate('game', {communityHand : result, howManySeeCommunity : 1})
+            YTK.db.dbUpdate('game', {communityHand : result, howManySeeCommunity : 1, howManySeeGameStats : 0})
           });
         }
       }
@@ -271,9 +272,18 @@ YTK.game = (function() {
       }
 
       //Once all see community
-      database.ref('/game/howManySeeCommunity').once('value', function(snap) {
-        if (snap.val() === connectedPlayers.length) {
-          console.log("I AM GOING TO RUN AT THIS POINT IN TIME")
+      database.ref('/game').once('value', function(snap) {
+        if (snap.val()['howManySeeCommunity'] === connectedPlayers.length && !stateObj.seesGameStats) {
+          stateObj.seesGameStats = true
+          var count = snap.val()['howManySeeGameStats'] += playerObj.id
+          YTK.db.dbUpdate('game', {howManySeeGameStats: count})
+          if (isHost()) {
+            YTK.db.dbUpdate('game', {moneyOnTable: connectedPlayers.length*5})
+          }
+          //YTK.db.dbUpdate('game', {moneyOnTable: connectedPlayers.length*5})
+          var btn = $("<button>")
+          btn.html("test")
+          $(".player-0").prepend(btn)
         }
       })
       // pop-up modal to let player pick an action
@@ -287,7 +297,7 @@ YTK.game = (function() {
       // at the end of each round, updateDBDeck()
     }
   },
-  displayChoices = function() {
+  displayChoices = function(user) {
 
   },
   setDeckListener = function(snapshot) {

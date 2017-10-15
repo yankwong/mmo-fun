@@ -43,7 +43,7 @@ YTK.cards = (function() {
 })();
 var MAX_PLAYERS = 5,
     INIT_MONEY  = 100,
-    COUNTDOWN_TIMER = 2,
+    COUNTDOWN_TIMER = 1,
     TOTAL_DECK = 1;
 // utility object to interact with FireBase
 var YTK = YTK || {};
@@ -107,6 +107,7 @@ YTK.game = (function() {
     communityDrawFree : true,   // reset
     canAssignSeat     : true,   // reset
     needPlayersStats  : true,   // never reset
+    seesGameStats     : false,  //set to true when game options/stats displayed
   },
   cardAPIFree = true, 
   connectedPlayers = [],
@@ -321,7 +322,7 @@ YTK.game = (function() {
           cardAPIFree = false;
           YTK.cards.drawCards(deckObj.id, 3, function(result) {
             communityDraw(result);
-            YTK.db.dbUpdate('game', {communityHand : result})
+            YTK.db.dbUpdate('game', {communityHand : result, howManySeeCommunity : 1, howManySeeGameStats : 0})
           });
         }
       }
@@ -342,6 +343,8 @@ YTK.game = (function() {
           database.ref('/game').once('value', function(snap) {
             if (snap.hasChild('communityHand')) {
               communityDraw(snap.val()['communityHand']);
+              var count = snap.val()['howManySeeCommunity'] + 1
+              YTK.db.dbUpdate('game', {howManySeeCommunity : count})
             }
             stateObj.communityDrawFree = true;
           });
@@ -349,6 +352,18 @@ YTK.game = (function() {
         }
       }
 
+      //Once all see community
+      database.ref('/game').once('value', function(snap) {
+        if (snap.val()['howManySeeCommunity'] === connectedPlayers.length && !stateObj.seesGameStats) {
+          stateObj.seesGameStats = true
+          var count = snap.val()['howManySeeGameStats'] += playerObj.id
+          YTK.db.dbUpdate('game', {howManySeeGameStats: count})
+          //YTK.db.dbUpdate('game', {moneyOnTable: connectedPlayers.length*5})
+          var btn = $("<button>")
+          btn.html("test")
+          $(".player-0").prepend(btn)
+        }
+      })
       // pop-up modal to let player pick an action
       // ?? is it turn based?, like is there an order of who act first?
 
@@ -359,6 +374,9 @@ YTK.game = (function() {
 
       // at the end of each round, updateDBDeck()
     }
+  },
+  displayChoices = function(user) {
+
   },
   setDeckListener = function(snapshot) {
     var snap = snapshot.val();
@@ -424,7 +442,6 @@ YTK.game = (function() {
 $(document).on('gameStarted', function(e, playerID) {
   YTK.game.start(playerID);
 });
-alert('work')
 //TODO: QA login/dc logic
 var YTK = YTK || {};
 
