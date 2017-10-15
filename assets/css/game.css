@@ -32,6 +32,18 @@
     .game-container .seat .avatar {
       background-image: none;
       margin: 0 auto; }
+      .game-container .seat .avatar.avatar-0 {
+        background-image: url("../images/sprite/avatars.jpg"); }
+      .game-container .seat .avatar.avatar-1 {
+        background-image: url("../images/sprite/avatars.jpg"); }
+      .game-container .seat .avatar.avatar-2 {
+        background-image: url("../images/sprite/avatars.jpg"); }
+      .game-container .seat .avatar.avatar-3 {
+        background-image: url("../images/sprite/avatars.jpg"); }
+      .game-container .seat .avatar.avatar-4 {
+        background-image: url("../images/sprite/avatars.jpg"); }
+      .game-container .seat .avatar.avatar-5 {
+        background-image: url("../images/sprite/avatars.jpg"); }
     .game-container .seat.player-0 {
       width: 100%;
       text-align: center; }

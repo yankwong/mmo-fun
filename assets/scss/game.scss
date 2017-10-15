@@ -42,6 +42,25 @@
     .avatar {
       background-image: none;
       margin: 0 auto;
+
+      &.avatar-0 {
+        background-image: url('../images/sprite/avatars.jpg');
+      }
+      &.avatar-1 {
+        background-image: url('../images/sprite/avatars.jpg');
+      }
+      &.avatar-2 {
+        background-image: url('../images/sprite/avatars.jpg');
+      }
+      &.avatar-3 {
+        background-image: url('../images/sprite/avatars.jpg');
+      }
+      &.avatar-4 {
+        background-image: url('../images/sprite/avatars.jpg');
+      }
+      &.avatar-5{
+        background-image: url('../images/sprite/avatars.jpg');
+      }
     }
 
     &.player-0 {
