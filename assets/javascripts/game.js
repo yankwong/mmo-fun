@@ -66,7 +66,7 @@ YTK.game = (function() {
     });
   },
   isHost = function() {
-    return playerObj.host;
+    return playerObj.host; 
   },
   initialDraw = function(result) {
     if (result.success) {

@@ -11,9 +11,24 @@ module.exports = function(grunt) {
         }
       }
     },
+    concat: {
+      app: {
+        src: [
+          './assets/javascripts/*.js',
+          '!./assets/javascripts/database-config.js'
+        ],
+        dest: './assets/javascripts/app.js'
+      }
+    },
     watch: {
-      files: ['assets/scss/*.scss'],
-      tasks: ['sass']
+      sass: {
+        files: ['assets/scss/*.scss'],
+        tasks: ['sass']  
+      },
+      concat: {
+        files: ['./assets/javascripts/*.js'],
+        tasks: ['concat']
+      }
     }
   });
 
@@ -21,8 +36,9 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-sass');
   grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-contrib-concat');
 
   // Default task(s).
-  grunt.registerTask('default', ['uglify', 'sass', 'watch']);
+  grunt.registerTask('default', ['uglify', 'sass', 'watch', 'concat']);
 
 };
