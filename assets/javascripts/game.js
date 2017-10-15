@@ -26,7 +26,8 @@ YTK.game = (function() {
     communityDrawFree : true,   // reset
     canAssignSeat     : true,   // reset
     needPlayersStats  : true,   // never reset
-    seesGameStats     : false,  //set to true when game options/stats displayed
+    seesModal         : false,  //set to true when game options/stats displayed
+    givenAnte         : false,  // set to true when player makes ante for round
   },
   cardAPIFree = true, 
   connectedPlayers = [],
@@ -288,10 +289,16 @@ YTK.game = (function() {
 
       if (communityReady(gameNode)) {
         var whosTurn = getWhosTurn(gameNode);
-        
-        if (whosTurn === playerObj.id) {
+        if (!stateObj.givenAnte) {
+          stateObj.givenAnte = true
+          var ante= 5;
+          playerMakesBet(ante)
+        }
+        if (whosTurn === playerObj.id && !stateObj.seesModal) {
+          stateObj.seesModal = true
           // --- !! If it's the current player's turn, display modal
           initOptionModal(displayOptionModal);
+          setTimeout(function(){setGameStatsInModal(gameNode)},200)
         }
       }
 
@@ -303,6 +310,41 @@ YTK.game = (function() {
       // at the end of each round, updateDBDeck()
     }
   },
+  setGameStatsInModal = function(gameNode) {
+    var statsContainer = $('.bet-form')
+    var initialPot = gameNode.howManySeeCommunity * 5
+    var othersMoney = []
+    YTK.db.dbUpdate('game', {totalPot : initialPot})
+    $('.bet-form').html("Total Pot: "+initialPot )
+    getOthersMoney(othersMoney)
+    for (var i = 0; i < othersMoney.length; i++) {
+      $('.bet-form').append('||'+othersMoney[i][0]+"'s Money: "+othersMoney[i][1])
+    }
+  },
+  getOthersMoney = function(array) {
+    database.ref().once('value', function(snapshot) {
+      snapshot.forEach(function(snap) {
+        if ( isPlayerNode(snap.val()) ) {
+          if ( snap.val()['id'] !== playerObj.id ) {
+            array.push( [ snap.val()['name'], snap.val()['money'] ] )
+          }
+        }
+      })
+    })
+    console.log(array, "HERE IS THE ARRAY YOU ARE LOOKING FOR")
+  },
+  playerMakesBet = function(bet) {
+    database.ref().once('value', function(snapshot) {
+      snapshot.forEach(function(snap) {
+        if( isPlayerNode(snap.val()) ) {
+          if( snap.val()['id'] === playerObj.id ) {
+            count = snap.val()['money'] - bet
+            YTK.db.dbUpdate(snap.val()['id'], {money: count})
+          }
+        }
+      })
+    })
+  }
   getWhosTurn = function(gameNode) {
     if (gameNode.hasOwnProperty('whosTurn')) {
       return parseInt(gameNode['whosTurn']);
@@ -344,6 +386,7 @@ YTK.game = (function() {
     $money.html(playerObj.money);    // update user money
 
     $betBtn.on('click', function() {
+      console.log('just bet')
       showDiv($('.bet-amount', 'bet-form'));
     });
     callback();
