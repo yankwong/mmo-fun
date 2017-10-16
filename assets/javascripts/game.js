@@ -28,7 +28,12 @@ YTK.game = (function() {
     needPlayersStats  : true,   // never reset
     seesModal         : false,  //set to true when game options/stats displayed
     givenAnte         : false,  // set to true when player makes ante for round
+    allDecisionsSatisfied: false,  // to be used to justify the instance of the subsequent round
+    preFlopBetsMade   : false,  // set to true when all bets in prior to flop
+    firstRoundBetsMade: false, // set to true when bets are made in the first round following the flop
   },
+  minBetHolder = 0, // for when min bet is raised through big enough bets in the round
+  turnCount = 0, //to know whose turn it is after the first turn of the round
   cardAPIFree = true, 
   connectedPlayers = [],
   database = firebase.database(),
@@ -40,6 +45,10 @@ YTK.game = (function() {
   },
   isPlayerNode = function(node) { // is this Node a player node?
     return node.hasOwnProperty('host');
+  },
+  betHasBeenMade = function(node) { // did this player make a bet?
+    var retVal = node.hasOwnProperty('recentBet')
+    return retVal
   },
   updateDeckObj = function(obj) {
     console.log('... writing deck', obj);
@@ -214,7 +223,7 @@ YTK.game = (function() {
         }  
       }
       
-
+      // deal the two cards which each user will see face up
       if (!haveHand(playerObj)) {
         if (deckObj.id !== '' && cardAPIFree) {
           cardAPIFree = false;
@@ -224,18 +233,58 @@ YTK.game = (function() {
           });      
         }
       }
-      else if (allHaveHand()) {
-
-        YTK.db.dbUpdate('game', {round : 1});
-
+      // FOR THE BETS BEFORE THE COMMUNITY CARD FLOP 
+      else if (!stateObj.preFlopBetsMade) {
         // put two fake cards on table
         if (stateObj.canPutFakeCard) {
           stateObj.canPutFakeCard = false;
-
           for (var i=1; i < connectedPlayers.length; i++) {
             putFakeCards($('.seat.player-' + i), 2);
           }  
         }
+        // turnCount is by default 0, meaning host should see modal first in all cases
+        if (turnCount === playerObj.id && !stateObj.seesModal) {
+          turnCount++
+          stateObj.seesModal = true;
+          setGameStatsInModal(gameNode);
+          initOptionModal(displayOptionModal)
+        } 
+        // when the user makes a bet their modal should dissapear and another's should appear, same thing for check/fold but haven't implemented yet
+        else if (betHasBeenMade(gameNode)) {
+          //getting min bet for game stats updated
+          var newMinBet = gameNode.recentBet - minBetHolder
+          minBetHolder = newMinBet
+          turnCount++
+          if (newMinBet === 0 && connectedPlayers.length === turnCount) {
+            turnCount = 0
+            stateObj.allDecisionsSatisfied = true
+          } 
+          else if (turnCount === connectedPlayers.length) {
+            turnCount = 0
+          }
+          hideOptionModal()
+          stateObj.seesModal = false
+          //for the players that weren't the host, this is how the modal will show up
+          if (playerObj.id === turnCount) {
+            database.ref('/game/recentBet').remove() 
+            setGameStatsInModal(gameNode)
+            initOptionModal(displayOptionModal)
+          }
+          //temp condition to end the pre-flop round, not final
+          if (stateObj.allDecisionsSatisfied) {
+            database.ref('/game/recentBet').remove()
+            stateObj.preFlopBetsMade = true
+            turnCount = 0 
+            database.ref('/game').update({preFlopBetsMade: true})
+          }
+        }
+      }
+      // AFTER THE PREFLOP BETS ARE IN, WE MUST DRAW THE COMMUNITY CARDS, STARTING WITH THE HOST
+      else if (!stateObj.preFlopBetsMade) {
+
+        YTK.db.dbUpdate('game', {round : 1});
+
+
 
         // HOST: draw commuinty card 
         if (isHost() && cardAPIFree) {
@@ -255,35 +304,21 @@ YTK.game = (function() {
         updateDBDeck();
       } 
       else {
-        console.log('round1: ', stateObj.communityDrawFree)
+        console.log('round1:', stateObj.communityDrawFree)
         if (!playerObj.communityShown && stateObj.communityDrawFree) {
 
           stateObj.communityDrawFree = false;
-
-          database.ref('/game').once('value', function(snap) {
-            if (snap.hasChild('communityHand')) {
-              communityDraw(snap.val()['communityHand']);
-              var count = snap.val()['howManySeeCommunity'] + 1
-              YTK.db.dbUpdate('game', {howManySeeCommunity : count})
-            }
-            stateObj.communityDrawFree = true;
-          });
-
+     
+          if (gameNode.hasOwnProperty('communityHand')) {
+            communityDraw(gameNode['communityHand']);
+            var count = gameNode['howManySeeCommunity'] + connectedPlayers.length - 1
+            YTK.db.dbUpdate('game', {howManySeeCommunity : count})
+          }
+          stateObj.communityDrawFree = true;
+          
         }
       }
 
-      // database.ref('/game').once('value', function(snap) {
-      //   if (snap.val()['howManySeeCommunity'] === connectedPlayers.length && !stateObj.seesGameStats) {
-      //     stateObj.seesGameStats = true
-      //     var count = snap.val()['howManySeeGameStats'] += playerObj.id
-      //     YTK.db.dbUpdate('game', {howManySeeGameStats: count})
-      //     if (isHost()) {
-      //       YTK.db.dbUpdate('game', {moneyOnTable: connectedPlayers.length*5})
-      //     }
-      //     //YTK.db.dbUpdate('game', {moneyOnTable: connectedPlayers.length*5})
-      //     var btn = $("<button>")
-      //     btn.html("test")
-      //     $(".player-0").prepend(btn)
 
       if (communityReady(gameNode)) {
         var whosTurn = getWhosTurn(gameNode);
@@ -295,15 +330,26 @@ YTK.game = (function() {
 
         // this will make sure our connectedPlayer is up-to-date
         if (anteReady()) {
-          updateDBPot(connectedPlayers.length * DEFAULT_ANTE);
-
+          console.log(connectedPlayers, "!!!!!!!!!!!!!!!!!!!!!!$$$$$$$$$$$$$$$$$$$$$$$")
+          if (!stateObj.firstRoundBetsMade) {
+            stateObj.firstRoundBetsMade = true;
+            updateDBPot(connectedPlayers.length * DEFAULT_ANTE);
+          }
+          //this will bring the modal to the host player one the flop has been completed for all players
           if (whosTurn === playerObj.id && !stateObj.seesModal) {
             stateObj.seesModal = true;
-          
             setGameStatsInModal(gameNode);
-
             initOptionModal(displayOptionModal);
           }
+        }
+      }
+      // for the player bets that aren't the host
+      if (betHasBeenMade(gameNode)) {
+        turnCount++
+        hideOptionModal()
+        if (playerObj.id === turnCount) {
+          setGameStatsinModal(gameNode)
+          initOptionModal(displayOptionModal)
         }
       }
 
@@ -334,9 +380,11 @@ YTK.game = (function() {
     var $statsContainer = $('.bet-form', '#optionModal'),
         othersMoney = [],
         $potDiv = $('.amount', '.pot-total');
-
-    $potDiv.html(gameNode.totalPot);
-
+    if (gameNode.hasOwnProperty('totalPot')) {
+      $potDiv.html(gameNode.totalPot);
+    } else {
+      $potDiv.html('0')
+    }
     othersMoney = getOthersMoney(othersMoney);
 
     for (var i = 0; i < othersMoney.length; i++) {
@@ -356,48 +404,25 @@ YTK.game = (function() {
                        money : player.money,} );
       }
     });
-    console.log(retVal, "HERE IS THE ARRAY YOU ARE LOOKING FOR")
     return retVal;
   },
   playerMakesBet = function(bet) {
-<<<<<<< HEAD
-    database.ref().once('value', function(snapshot) {
-      snapshot.forEach(function(snap) {
-        if( isPlayerNode(snap.val()) ) {
-          if( snap.val()['id'] === playerObj.id ) {
-            count = snap.val()['money'] - bet
-            YTK.db.dbUpdate(snap.val()['id'], {money: count})
-            $('.user-money').html(count)
-          }
-        }
-      })
-    })
-=======
     var count = playerObj.money;
-
     bet = Math.floor(bet);
 
-    if (playerObj.money >= bet) {
+    if (playerObj.money >= bet && bet >= MIN_BET) {
       count = playerObj.money - bet;
       playerObj.money = count;
       YTK.db.dbUpdate(playerObj.id, {money: count})
     }
-    else {
+    else if (!(playerObj.money) >= bet && bet >= MIN_BET) {
       console.log('%cNot enough money to make bet', 'font-weight: bold; color: red;');
     }
-
-    // database.ref().once('value', function(snapshot) {
-    //   snapshot.forEach(function(snap) {
-    //     if( isPlayerNode(snap.val()) ) {
-    //       if( snap.val()['id'] === playerObj.id ) {
-    //         count = snap.val()['money'] - bet;
-    //         YTK.db.dbUpdate(snap.val()['id'], {money: count})
-    //       }
-    //     }
-    //   })
-    // })
->>>>>>> 450165602f458d6124800233d42d90f8bfb984d9
-  }
+    else if (playerObj.money >= bet && !(bet >= MIN_BET)) {
+      console.log('%cNeed to make bigger bet', 'font-weight: bold; color: red;')
+    }
+    database.ref('/game').update({recentBet : bet})
+  },
   getWhosTurn = function(gameNode) {
     if (gameNode.hasOwnProperty('whosTurn')) {
       return parseInt(gameNode['whosTurn']);
@@ -417,6 +442,11 @@ YTK.game = (function() {
     });
     $optModal.modal('show');
   },
+  hideOptionModal = function() {
+    console.log("I SHOULD BE NOT SEEING THE MODAL RIGHT HERE !!!!!!!!!!!!!!!!!!!!!")
+    var $optModal = $('#optionModal');
+    $optModal.modal('hide')
+  }
   setupLocalTimer = function() {
     var localTimer,
         timer   = MODAL_COUNTDOWN,
@@ -434,16 +464,21 @@ YTK.game = (function() {
   initOptionModal = function(callback) {
     var $optionModal = $('#optionModal'),
         $money    = $('.user-money', '#optionModal'),
-        $betBtn   = $('.btn-bet', '#optionModal'),
+        $betBtn   = $('.btn-makeBet'),
         $checkBtn = $('.btn-check', '#optionModal'),
         $foldBtn  = $('.btn-fold', '#optionModal');
+        $minBet   = $('.min-bet', '#optionModal');
 
-    $money.html(playerObj.money);    // update user money
+    $money.html('Money Left: ' + playerObj.money);  // update user money
+    console.log(minBetHolder, "HERE IS WHERE THE MINIMIM BET IS COMING FROM!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    $minBet.html('Minimum Bet: ' + minBetHolder)
 
     $betBtn.on('click', function() {
-      console.log('just bet')
-      showDiv($('.bet-amount', 'bet-form'));
+      var bet = $('.bet-amount').val()
+      playerMakesBet(bet)
+      minBetHolder += bet
     });
+
     callback();
   },
   setDeckListener = function(snapshot) {
