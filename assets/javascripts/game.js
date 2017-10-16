@@ -247,23 +247,22 @@ YTK.game = (function() {
           }  
         }
         // turnCount is by default 0, meaning player id 0 should see modal first in all cases
-        if (turnCount === playerObj.id && !stateObj.seesModal) {
+        // this is for the first player (ie. player 0)
+        if (isMyTurn() && !stateObj.seesModal) {
           stateObj.seesModal = true;
           setGameStatsInModal(gameNode);
           initOptionModal(displayOptionModal);
-        } 
+        }
         // when a user makes a bet their modal should disappear and another's should appear
         // same thing for check/fold but haven't implemented yet
         else if (betHasBeenMade(gameNode)) {
-          //getting min bet for game stats updated
-          console.log(minBetHolder, "Do I have the right minBet");
-          // var newMinBet = parseInt(gameNode.recentBet) - minBetHolder;
+          // run whenever *someone* including urself made a bet
           minBetHolder = getSmaller(gameNode.recentBet, minBetHolder);
           updateTurnCount();
           hideOptionModal();
           stateObj.seesModal = false;
           //for the players that weren't the player id 0, this is how the modal will show up
-          if (playerObj.id === turnCount) {
+          if (isMyTurn()) {
             database.ref('/game/recentBet').remove();
             setGameStatsInModal(gameNode);
             initOptionModal(displayOptionModal);
@@ -359,6 +358,9 @@ YTK.game = (function() {
 
       // at the end of each round, updateDBDeck()
     }
+  },
+  isMyTurn = function() {
+    return playerObj.id === turnCount;
   },
   updateTurnCount = function() {
     turnCount++;
@@ -478,9 +480,9 @@ YTK.game = (function() {
     $minBet.html('Minimum Bet: ' + minBetHolder)
 
     $betBtn.on('click', function() {
-      var bet = $('.bet-amount').val()
-      playerMakesBet(bet)
-      //minBetHolder = parseInt(bet)
+      var bet = Math.floor(parseInt($('.bet-amount').val()));
+      playerMakesBet(bet); // update Firebase \player's Node
+      
       console.log(minBetHolder, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
     });
 
