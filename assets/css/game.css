@@ -80,10 +80,10 @@
     border: 1px solid gold;
     padding: 15px;
     font-weight: bold;
-    margin-left: 30px; }
+    margin-left: 50px; }
   .game-container #optionModal .pot-total {
     display: inline-block;
-    margin-left: 30px;
+    margin-left: 50px;
     border: 1px solid blue;
     padding: 15px;
     font-weight: bold; }
