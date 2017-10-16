@@ -19,6 +19,7 @@ YTK.game = (function() {
     hand      : '[]',
     community : '[]',
     communityShown : false,
+    bet       : 0,
   }, 
   seats = [], // a 1:1 matching of seat-ID : player-ID
   stateObj = {  // keep track of various state of the program
@@ -37,7 +38,7 @@ YTK.game = (function() {
   cardAPIFree = true, 
   connectedPlayers = [],
   database = firebase.database(),
-  getSmaller = function (numA, numB) {
+  getLarger = function (numA, numB) {
     numA = parseInt(numA);
     numB = parseInt(numB);
     return numA >= numB ? numA : numB;
@@ -100,6 +101,9 @@ YTK.game = (function() {
       cardAPIFree = true;
     }
   },
+  updatePlayerObj = function(newObj) {
+    $.extend(playerObj, newObj);
+  },
   updatePlayersArray = function(snapshot) {
     connectedPlayers = [];
     snapshot.forEach(function(snap) {
@@ -115,6 +119,7 @@ YTK.game = (function() {
           ready     : node.ready,
           host      : node.host,
           hand      : node.hand || '[]',
+          bet       : node.bet,
         });  
       }
     });
@@ -134,6 +139,7 @@ YTK.game = (function() {
   },
   playerNodesListener = function(snapshot) {
     updatePlayersArray(snapshot);
+    updatePlayerObj(connectedPlayers[playerObj.id])
   },
   getDBGameRound = function(node) {
     if (node.hasOwnProperty('round')) {
@@ -214,6 +220,9 @@ YTK.game = (function() {
 
       hideDiv($('.page-loader'));
 
+      // update 'preFlopBetsMade' with firebase data
+      stateObj.preFlopBetsMade = gameNode.preFlopBetsMade;
+
       if (stateObj.canAssignSeat && seats.length === 0) {
         assignSeats();
       }
@@ -246,42 +255,30 @@ YTK.game = (function() {
             putFakeCards($('.seat.player-' + i), 2);
           }  
         }
-        // turnCount is by default 0, meaning player id 0 should see modal first in all cases
-        // this is for the first player (ie. player 0)
+        // turnCount start at 0, player 0 will always start first
         if (isMyTurn() && !stateObj.seesModal) {
           stateObj.seesModal = true;
           setGameStatsInModal(gameNode);
-          initOptionModal(displayOptionModal);
+          initOptionModal(gameNode, displayOptionModal);
         }
-        // when a user makes a bet their modal should disappear and another's should appear
-        // same thing for check/fold but haven't implemented yet
+        // when someone (including urself) makes a bet
         else if (betHasBeenMade(gameNode)) {
-          // run whenever *someone* including urself made a bet
-          minBetHolder = getSmaller(gameNode.recentBet, minBetHolder);
+          minBetHolder = getLarger(gameNode.recentBet, minBetHolder);
           updateTurnCount();
           hideOptionModal();
           stateObj.seesModal = false;
-          //for the players that weren't the player id 0, this is how the modal will show up
+          
+          // show your modal if it's your turn
           if (isMyTurn()) {
-            database.ref('/game/recentBet').remove();
-            setGameStatsInModal(gameNode);
-            initOptionModal(displayOptionModal);
-          }
-          //temp condition to end the pre-flop round, not final
-          if (stateObj.allDecisionsSatisfied) {
-            database.ref('/game/recentBet').remove();
-            stateObj.preFlopBetsMade = true;
-            turnCount = 0;
-            database.ref('/game').update({preFlopBetsMade: true})
+            database.ref('/game/recentBet').remove().then(function() {
+              setGameStatsInModal(gameNode);
+              initOptionModal(gameNode, displayOptionModal);  
+            });
           }
         }
       }
       // AFTER THE PREFLOP BETS ARE IN, WE MUST DRAW THE COMMUNITY CARDS, STARTING WITH THE HOST
-      else if (!stateObj.preFlopBetsMade) {
-
-        YTK.db.dbUpdate('game', {round : 1});
-
-
+      else if (stateObj.preFlopBetsMade) {
 
         // HOST: draw commuinty card 
         if (isHost() && cardAPIFree) {
@@ -291,6 +288,9 @@ YTK.game = (function() {
             YTK.db.dbUpdate('game', {communityHand : result, howManySeeCommunity : 1, howManySeeGameStats : 0})
           });
         }
+
+        // go to round 1
+        YTK.db.dbUpdate('game', {round : 1});
       }
     }
     // ROUND 1: first deal of the commuinty deck
@@ -312,7 +312,6 @@ YTK.game = (function() {
             YTK.db.dbUpdate('game', {howManySeeCommunity : count})
           }
           stateObj.communityDrawFree = true;
-          
         }
       }
 
@@ -336,7 +335,7 @@ YTK.game = (function() {
           if (whosTurn === playerObj.id && !stateObj.seesModal) {
             stateObj.seesModal = true;
             setGameStatsInModal(gameNode);
-            initOptionModal(displayOptionModal);
+            initOptionModal(gameNode, displayOptionModal);
           }
         }
       }
@@ -347,26 +346,23 @@ YTK.game = (function() {
         hideOptionModal();
         if (playerObj.id === turnCount) {
           setGameStatsinModal(gameNode)
-          initOptionModal(displayOptionModal)
+          initOptionModal(gameNode, displayOptionModal)
         }
       }
-
-      // notice the modal has a local timer, when it runs out it's auto "pass"
-
       // if a player have <= 0 money, he lose the game and can no longer do action
       // when it goes to their turn it auto pass
 
       // at the end of each round, updateDBDeck()
     }
   },
+  whosTurn = function() {
+    return turnCount % connectedPlayers.length;
+  },
   isMyTurn = function() {
-    return playerObj.id === turnCount;
+    return playerObj.id === whosTurn();
   },
   updateTurnCount = function() {
     turnCount++;
-    if (turnCount === connectedPlayers.length) { 
-      turnCount = 0;
-    }
   },
   anteReady = function(gameNode) {
     var allPaid = true,
@@ -415,12 +411,17 @@ YTK.game = (function() {
   },
   playerMakesBet = function(bet) {
     var count = playerObj.money;
-    bet = Math.floor(bet);
+        bet = Math.floor(bet);
+
+    playerObj.bet = playerObj.bet || 0;
 
     if (playerObj.money >= bet && bet >= MIN_BET) {
       count = playerObj.money - bet;
       playerObj.money = count;
-      YTK.db.dbUpdate(playerObj.id, {money: count})
+
+      YTK.db.dbUpdate(playerObj.id, {money: count, bet: playerObj.bet + bet}, function() {
+        YTK.db.dbUpdate('game', {recentBet : bet});  
+      });
     }
     else if (!(playerObj.money) >= bet && bet >= MIN_BET) {
       console.log('%cNot enough money to make bet', 'font-weight: bold; color: red;');
@@ -428,7 +429,6 @@ YTK.game = (function() {
     else if (playerObj.money >= bet && !(bet >= MIN_BET)) {
       console.log('%cNeed to make bigger bet', 'font-weight: bold; color: red;')
     }
-    database.ref('/game').update({recentBet : bet})
   },
   getWhosTurn = function(gameNode) {
     if (gameNode.hasOwnProperty('whosTurn')) {
@@ -450,7 +450,6 @@ YTK.game = (function() {
     $optModal.modal('show');
   },
   hideOptionModal = function() {
-    console.log("I SHOULD BE NOT SEEING THE MODAL RIGHT HERE !!!!!!!!!!!!!!!!!!!!!")
     var $optModal = $('#optionModal');
     $optModal.modal('hide');
   },
@@ -468,22 +467,85 @@ YTK.game = (function() {
       timer --;
     }, 1000);
   },
-  initOptionModal = function(callback) {
+  canCheck = function() {
+    var myBet = playerObj.bet,
+        allEqual = true;
+console.log('can check?', connectedPlayers);
+    for (var i = 0; i<connectedPlayers.length; i++) {
+      if (myBet !== connectedPlayers[i].bet) {
+        console.log('this fucker', connectedPlayers[i]);
+        allEqual = false;
+        break;
+      }
+    }
+    return allEqual;
+  };
+  initOptionModal = function(gameNode, callback) {
     var $optionModal = $('#optionModal'),
-        $money    = $('.user-money', '#optionModal'),
-        $betBtn   = $('.btn-makeBet'),
+        $money    = $('.user-money .amount', '#optionModal'),
+        $betBtn   = $('.btn-makeBet', '#optionModal'),
         $checkBtn = $('.btn-check', '#optionModal'),
-        $foldBtn  = $('.btn-fold', '#optionModal');
-        $minBet   = $('.min-bet', '#optionModal');
+        $callBtn = $('.btn-call', '#optionModal'),
+        $callAmt = $('.btn-call .amount', '#optionModal'),
+        $foldBtn  = $('.btn-fold', '#optionModal'),
+        $minBet   = $('.min-bet', '#optionModal'),
+        $betTxtBox = $('.bet-amount', '#optionModal'),
+        myBet = playerObj.bet || 0;
 
-    $money.html('Money Left: ' + playerObj.money);  // update user money
-    $minBet.html('Minimum Bet: ' + minBetHolder)
 
-    $betBtn.on('click', function() {
+    $money.html(playerObj.money);  // update user money
+    $minBet.html('Minimum Bet: ' + minBetHolder);
+    $betTxtBox.val('');
+
+    // for the very first turn
+    if (turnCount === 0) {
+      hideDiv($callBtn);
+      hideDiv($checkBtn);
+    }
+    else {
+      if (canCheck()) {
+        showDiv($checkBtn);
+      }
+      else {
+        showDiv($callBtn);  
+      }
+      $callAmt.html(minBetHolder - myBet);
+      $betBtn.html('Raise');  // change wording of the bet button
+    }
+
+    // setup "check" button
+    if (turnCount !== 0 && whosTurn() === 0) {
+      $checkBtn.off().on('click', function() {
+
+        database.ref('/game/recentBet').remove();
+        stateObj.preFlopBetsMade = true;
+        turnCount = 0;
+        database.ref('/game').update({preFlopBetsMade: true})
+
+        console.log('done with pre flop');
+      });
+    }
+    else {
+      $checkBtn.off().on('click', function() {
+        playerMakesBet(0);  // calling this just to trigger modal exchange
+      })
+    }
+
+    // setup "bet" ("raise") button
+    $betBtn.off().on('click', function() {
       var bet = Math.floor(parseInt($('.bet-amount').val()));
       playerMakesBet(bet); // update Firebase \player's Node
-      
-      console.log(minBetHolder, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+    });
+    $('.bet-amount', '#optionModal').off().on('keyup', function(e) {
+      if (e.keyCode == 13) {
+        var bet = Math.floor(parseInt($('.bet-amount').val()));
+        playerMakesBet(bet); // update Firebase \player's Node
+      }
+    });
+    
+    // setup the "call" button
+    $callBtn.off().on('click', function() {
+      playerMakesBet(minBetHolder);
     });
 
     callback();
