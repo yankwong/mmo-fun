@@ -328,7 +328,6 @@ YTK.game = (function() {
         }
         // turnCount is by default 0, meaning host should see modal first in all cases
         if (turnCount === playerObj.id && !stateObj.seesModal) {
-          turnCount++
           stateObj.seesModal = true;
           setGameStatsInModal(gameNode);
           initOptionModal(displayOptionModal)
@@ -336,14 +335,11 @@ YTK.game = (function() {
         // when the user makes a bet their modal should dissapear and another's should appear, same thing for check/fold but haven't implemented yet
         else if (betHasBeenMade(gameNode)) {
           //getting min bet for game stats updated
-          var newMinBet = gameNode.recentBet - minBetHolder
+          console.log(minBetHolder, "Do I have the right minBet")
+          var newMinBet = parseInt(gameNode.recentBet) - minBetHolder
           minBetHolder = newMinBet
           turnCount++
-          if (newMinBet === 0 && connectedPlayers.length === turnCount) {
-            turnCount = 0
-            stateObj.allDecisionsSatisfied = true
-          } 
-          else if (turnCount === connectedPlayers.length) {
+          if (turnCount === connectedPlayers.length) {
             turnCount = 0
           }
           hideOptionModal()
@@ -522,7 +518,7 @@ YTK.game = (function() {
   displayOptionModal = function() {
     var $optModal = $('#optionModal');
     $optModal.on('shown.bs.modal', function() {
-      setupLocalTimer();
+      //setupLocalTimer();
     });
     $optModal.modal('show');
   },
@@ -554,13 +550,13 @@ YTK.game = (function() {
         $minBet   = $('.min-bet', '#optionModal');
 
     $money.html('Money Left: ' + playerObj.money);  // update user money
-    console.log(minBetHolder, "HERE IS WHERE THE MINIMIM BET IS COMING FROM!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     $minBet.html('Minimum Bet: ' + minBetHolder)
 
     $betBtn.on('click', function() {
       var bet = $('.bet-amount').val()
       playerMakesBet(bet)
-      minBetHolder += bet
+      //minBetHolder = parseInt(bet)
+      console.log(minBetHolder, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
     });
 
     callback();
