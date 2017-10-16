@@ -26,10 +26,10 @@ YTK.game = (function() {
     communityDrawFree : true,   // reset
     canAssignSeat     : true,   // reset
     needPlayersStats  : true,   // never reset
-    seesModal         : false,  //set to true when game options/stats displayed
+    seesModal         : false,  //set to true when #optionModal displays
     givenAnte         : false,  // set to true when player makes ante for round
     allDecisionsSatisfied: false,  // to be used to justify the instance of the subsequent round
-    preFlopBetsMade   : false,  // set to true when all bets in prior to flop
+    preFlopBetsMade   : false,  // set to true when all bets are in prior to flop
     firstRoundBetsMade: false, // set to true when bets are made in the first round following the flop
   },
   minBetHolder = 0, // for when min bet is raised through big enough bets in the round
@@ -37,6 +37,11 @@ YTK.game = (function() {
   cardAPIFree = true, 
   connectedPlayers = [],
   database = firebase.database(),
+  getSmaller = function (numA, numB) {
+    numA = parseInt(numA);
+    numB = parseInt(numB);
+    return numA >= numB ? numA : numB;
+  },
   showDiv = function($div) {
     $div.removeClass('hidden'); 
   },
@@ -47,8 +52,7 @@ YTK.game = (function() {
     return node.hasOwnProperty('host');
   },
   betHasBeenMade = function(node) { // did this player make a bet?
-    var retVal = node.hasOwnProperty('recentBet')
-    return retVal
+    return node.hasOwnProperty('recentBet')
   },
   updateDeckObj = function(obj) {
     console.log('... writing deck', obj);
@@ -242,35 +246,33 @@ YTK.game = (function() {
             putFakeCards($('.seat.player-' + i), 2);
           }  
         }
-        // turnCount is by default 0, meaning host should see modal first in all cases
+        // turnCount is by default 0, meaning player id 0 should see modal first in all cases
         if (turnCount === playerObj.id && !stateObj.seesModal) {
           stateObj.seesModal = true;
           setGameStatsInModal(gameNode);
-          initOptionModal(displayOptionModal)
+          initOptionModal(displayOptionModal);
         } 
-        // when the user makes a bet their modal should dissapear and another's should appear, same thing for check/fold but haven't implemented yet
+        // when a user makes a bet their modal should disappear and another's should appear
+        // same thing for check/fold but haven't implemented yet
         else if (betHasBeenMade(gameNode)) {
           //getting min bet for game stats updated
-          console.log(minBetHolder, "Do I have the right minBet")
-          var newMinBet = parseInt(gameNode.recentBet) - minBetHolder
-          minBetHolder = newMinBet
-          turnCount++
-          if (turnCount === connectedPlayers.length) {
-            turnCount = 0
-          }
-          hideOptionModal()
-          stateObj.seesModal = false
-          //for the players that weren't the host, this is how the modal will show up
+          console.log(minBetHolder, "Do I have the right minBet");
+          // var newMinBet = parseInt(gameNode.recentBet) - minBetHolder;
+          minBetHolder = getSmaller(gameNode.recentBet, minBetHolder);
+          updateTurnCount();
+          hideOptionModal();
+          stateObj.seesModal = false;
+          //for the players that weren't the player id 0, this is how the modal will show up
           if (playerObj.id === turnCount) {
-            database.ref('/game/recentBet').remove() 
-            setGameStatsInModal(gameNode)
-            initOptionModal(displayOptionModal)
+            database.ref('/game/recentBet').remove();
+            setGameStatsInModal(gameNode);
+            initOptionModal(displayOptionModal);
           }
           //temp condition to end the pre-flop round, not final
           if (stateObj.allDecisionsSatisfied) {
-            database.ref('/game/recentBet').remove()
-            stateObj.preFlopBetsMade = true
-            turnCount = 0 
+            database.ref('/game/recentBet').remove();
+            stateObj.preFlopBetsMade = true;
+            turnCount = 0;
             database.ref('/game').update({preFlopBetsMade: true})
           }
         }
@@ -341,8 +343,9 @@ YTK.game = (function() {
       }
       // for the player bets that aren't the host
       if (betHasBeenMade(gameNode)) {
-        turnCount++
-        hideOptionModal()
+        // turnCount++
+        updateTurnCount();
+        hideOptionModal();
         if (playerObj.id === turnCount) {
           setGameStatsinModal(gameNode)
           initOptionModal(displayOptionModal)
@@ -355,6 +358,12 @@ YTK.game = (function() {
       // when it goes to their turn it auto pass
 
       // at the end of each round, updateDBDeck()
+    }
+  },
+  updateTurnCount = function() {
+    turnCount++;
+    if (turnCount === connectedPlayers.length) { 
+      turnCount = 0;
     }
   },
   anteReady = function(gameNode) {
@@ -441,8 +450,8 @@ YTK.game = (function() {
   hideOptionModal = function() {
     console.log("I SHOULD BE NOT SEEING THE MODAL RIGHT HERE !!!!!!!!!!!!!!!!!!!!!")
     var $optModal = $('#optionModal');
-    $optModal.modal('hide')
-  }
+    $optModal.modal('hide');
+  },
   setupLocalTimer = function() {
     var localTimer,
         timer   = MODAL_COUNTDOWN,
