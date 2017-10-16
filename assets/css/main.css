@@ -72,6 +72,7 @@ input::placeholder {
     height: 200px;
     width: 60%;
     color: gold;
+    opacity: 0.8;
     text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
     margin: 0 auto;
     margin-bottom: 30%; }
