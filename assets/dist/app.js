@@ -28,7 +28,12 @@ YTK.cards = (function() {
     callAPI(url, callback);
   },
   getImg = function(cardID) {
-    return 'http://deckofcardsapi.com/static/img/' + cardID + '.png';
+    if (cardID == 'AD') {
+      return 'assets/images/' + cardID + '.png';  
+    }
+    else {
+      return 'http://deckofcardsapi.com/static/img/' + cardID + '.png';  
+    }
   },
   drawCards = function(deckID, total, callback) {
     var url = 'https://deckofcardsapi.com/api/deck/' + deckID + '/draw/?count=' + total;
