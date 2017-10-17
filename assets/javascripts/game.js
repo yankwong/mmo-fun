@@ -671,15 +671,7 @@ YTK.game = (function() {
   },
   displayOptionModal = function() {
     var $optModal = $('#optionModal');
-    $optModal.on('shown.bs.modal', function() {
-      //setupLocalTimer();
-    });
-
-    // TEST hacky!
-    //setTimeout(function() {
-      $optModal.modal('show');  
-    //}, 20);
-    
+    $optModal.modal('show');  
   },
   hideOptionModal = function() {
     var $optModal = $('#optionModal');
@@ -707,7 +699,18 @@ YTK.game = (function() {
       var allEqual = false;
     }
     return allEqual;
-  };
+  },
+  grabCommunityCards = function() {
+    var $communityArea = $('.community-area', '.game-container'),
+        $modalCCards   = $('.community-cards', '#optionModal'),
+        communityCards = $communityArea.html();
+
+console.log('grab community cards');
+
+    if (communityCards !== '') {
+      $modalCCards.html($communityArea.html())  
+    }
+  },
   initOptionModal = function(gameNode, callback) {
     var $optionModal = $('#optionModal'),
         $money    = $('.user-money .amount', '#optionModal'),
@@ -720,7 +723,7 @@ YTK.game = (function() {
         myBet = playerObj.bet || 0;
 
     setGameStatsInModal(gameNode);
-
+    grabCommunityCards();
     $money.html(playerObj.money);  // update user money
     $minBet.html('Minimum Bet: ' + minBetHolder);
     $betTxtBox.val('');

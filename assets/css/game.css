@@ -73,6 +73,8 @@
     width: 100px; }
   .game-container .avatar {
     max-width: 100%; }
+  .game-container #optionModal .first-row .community-cards {
+    width: 50%; }
   .game-container #optionModal .first-row .btn-bet {
     font-size: 30px; }
   .game-container #optionModal .first-row .user-money {
