@@ -1,5 +1,5 @@
 var YTK = YTK || {} ;
-//hello this is a test
+
 YTK.game = (function() {
   var 
   deckObj = {
@@ -393,11 +393,10 @@ YTK.game = (function() {
       }
 
       if (communityReady(dbGameRound)) {
-console.log('round 2 community ready!!', !stateObj.preFlopBetsMade);
         // logics here is for all the betting before we are ready
         // to give out one more community card
         if (!stateObj.preFlopBetsMade) {
-console.log('round 2 doctor: ', isMyTurn(), !stateObj.seesModal);
+          
           if (isMyTurn() && !stateObj.seesModal) {
             stateObj.seesModal = true;
             initOptionModal(gameNode, displayOptionModal);
@@ -462,17 +461,39 @@ console.log('round 2 doctor: ', isMyTurn(), !stateObj.seesModal);
         // logics here is for all the betting before we are ready
         // to give out one more community card
         if (!stateObj.preFlopBetsMade) {
-          handleModalTurns(gameNode);
+          if (isMyTurn() && !stateObj.seesModal) {
+            stateObj.seesModal = true;
+            initOptionModal(gameNode, displayOptionModal);
+          }
+          // when someone (including urself) makes a bet
+          else if (betHasBeenMade(gameNode)) {
+            
+            minBetHolder = getLarger(gameNode.recentBet, minBetHolder);
+            updateTurnCount();
+            hideOptionModal();
+            stateObj.canProcessModal = true;
+            stateObj.seesModal = false;
+            
+            // show your modal if it's your turn
+            if (isMyTurn() && stateObj.canProcessModal) {
+              stateObj.canProcessModal = false;
+              database.ref('/game/recentBet').remove().then(function() {
+                initOptionModal(gameNode, displayOptionModal);  
+              });
+            }
+          }
         }
         // ready to increament round
         else if (stateObj.preFlopBetsMade) {
           alert('END GAME HERE YO!!!!');
+          exit();
           playerObj.communityShown = false;
           minBetHolder = 0;
 
           if (isHost()) {
             // handleFlop(gameNode);
             alert('END GAME HERE YO!!!!');
+            exit();
           }        
         }
       }
@@ -488,28 +509,28 @@ console.log('round 2 doctor: ', isMyTurn(), !stateObj.seesModal);
   // then open ur modal if it's ur turn 
   // firebase: clear "/game/recentBet"
   // firebase: the modal can triggers multiple DB updates
-  handleModalTurns = function(gameNode) {
-    if (isMyTurn() && !stateObj.seesModal) {
-      stateObj.seesModal = true;
-      initOptionModal(gameNode, displayOptionModal);
-    }
-    // when someone (including urself) makes a bet
-    else if (betHasBeenMade(gameNode)) {
-      minBetHolder = getLarger(gameNode.recentBet, minBetHolder);
-      updateTurnCount();
-      hideOptionModal();
-      stateObj.canProcessModal = true;
-      stateObj.seesModal = false;
+  // handleModalTurns = function(gameNode) {
+  //   if (isMyTurn() && !stateObj.seesModal) {
+  //     stateObj.seesModal = true;
+  //     initOptionModal(gameNode, displayOptionModal);
+  //   }
+  //   // when someone (including urself) makes a bet
+  //   else if (betHasBeenMade(gameNode)) {
+  //     minBetHolder = getLarger(gameNode.recentBet, minBetHolder);
+  //     updateTurnCount();
+  //     hideOptionModal();
+  //     stateObj.canProcessModal = true;
+  //     stateObj.seesModal = false;
       
-      // show your modal if it's your turn
-      if (isMyTurn() && stateObj.canProcessModal) {
-        stateObj.canProcessModal = false;
-        database.ref('/game/recentBet').remove().then(function() {
-          initOptionModal(gameNode, displayOptionModal);  
-        });
-      }
-    }
-  },
+  //     // show your modal if it's your turn
+  //     if (isMyTurn() && stateObj.canProcessModal) {
+  //       stateObj.canProcessModal = false;
+  //       database.ref('/game/recentBet').remove().then(function() {
+  //         initOptionModal(gameNode, displayOptionModal);  
+  //       });
+  //     }
+  //   }
+  // },
   // 1. draw card from cardAPI 
   // 2. update firebase with newly drawn community card
   // 3. update firebase with round ++
@@ -628,7 +649,12 @@ console.log('round 2 doctor: ', isMyTurn(), !stateObj.seesModal);
     $optModal.on('shown.bs.modal', function() {
       //setupLocalTimer();
     });
-    $optModal.modal('show');
+
+    // TEST hacky!
+    //setTimeout(function() {
+      $optModal.modal('show');  
+    //}, 20);
+    
   },
   hideOptionModal = function() {
     var $optModal = $('#optionModal');
@@ -651,7 +677,7 @@ console.log('round 2 doctor: ', isMyTurn(), !stateObj.seesModal);
   canCheck = function() {
     var myBet = playerObj.bet,
         allEqual = true;
-console.log('can check?', connectedPlayers);
+
     for (var i = 0; i<connectedPlayers.length; i++) {
       if (myBet !== connectedPlayers[i].bet) {
         allEqual = false;
@@ -677,8 +703,6 @@ console.log('can check?', connectedPlayers);
     $money.html(playerObj.money);  // update user money
     $minBet.html('Minimum Bet: ' + minBetHolder);
     $betTxtBox.val('');
-
-    console.log('current turn: ', turnCount);
     
     // for the very first turn of each round
     if (turnCount === 0) {
@@ -736,6 +760,7 @@ console.log('can check?', connectedPlayers);
     $callBtn.off().on('click', function() {
       playerMakesBet(minBetHolder);
     });
+
     callback();
   },
   setDeckListener = function(snapshot) {
