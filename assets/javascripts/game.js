@@ -33,9 +33,13 @@ YTK.game = (function() {
     preFlopBetsMade   : false,  // set to true when all bets are in prior to flop
     firstRoundBetsMade: false, // set to true when bets are made in the first round following the flop
     canProcessModal   : true,  // set to false when we started initModal to avoid init the same modal more than once
+    initTotalPot      : false, // to see if initial total pot needs to be initialized at the start of the round
+    inGameIDsUpdated  : false, // to see if the gameNode has been initialized/updated with whatever players are in the game
   },
   minBetHolder = 0, // for when min bet is raised through big enough bets in the round
+  totalPotHolder = 0, // for updating the total pot to set in modal stats display
   turnCount = 0, //to know whose turn it is after the first turn of the round
+  playersLeftInGame = 0, // to count how many players still retain their hand as game progresses   
   cardAPIFree = true, 
   connectedPlayers = [],
   database = firebase.database(),
@@ -44,6 +48,12 @@ YTK.game = (function() {
     numB = parseInt(numB);
     return numA >= numB ? numA : numB;
   },
+  getNewMinBet = function(recentBet) {
+    return recentBet - minBetHolder;
+  },
+  getNewTotalPot = function(recentBet) {
+    return totalPotHolder + recentBet
+  }
   showDiv = function($div) {
     $div.removeClass('hidden'); 
   },
@@ -209,6 +219,15 @@ YTK.game = (function() {
     $seat.find('.name').html(pObj.name);
     $seat.find('.money').html('<i class="fa fa-usd" aria-hidden="true"></i>' + pObj.money);
   },
+  /// this function will set booleans in a gameNode object which will be used to check whether a player is is still part of the game or has folded or has ran out of money
+  setInGameIDs = function () {
+    var inGameIDs = {};
+    for (var i = 0; i < connectedPlayers.length; i++) {
+      var inGameId = connectedPlayers[i].id;
+      inGameIDs[inGameId] = true;
+    }
+    YTK.db.dbUpdate('/game/inGameIDs', inGameIDs)
+  }
   // main function to determine what to do in each round
   gameRoundListener = function(snapshot) {
     var gameNode = snapshot.val()['game'],
@@ -252,6 +271,11 @@ YTK.game = (function() {
       }
       // FOR THE BETS BEFORE THE COMMUNITY CARD FLOP 
       else if (!stateObj.preFlopBetsMade) {
+        if (!stateObj.inGameIDsUpdated) {
+          stateObj.inGameIDsUpdated = true
+          playersLeftInGame = connectedPlayers.length
+          setInGameIDs()
+        }
         // put two fake cards on table
         if (stateObj.canPutFakeCard) {
           stateObj.canPutFakeCard = false;
@@ -260,13 +284,14 @@ YTK.game = (function() {
           }  
         }
         // turnCount start at 0, player 0 will always start first
-        if (isMyTurn() && !stateObj.seesModal) {
+        if (isMyTurn() && !stateObj.seesModal && playerObj.id === 0) { /// !!!!!!!!!!!!!!!!! ADDED THE THIRD CONDITION BECAUSE OF MULTIPLE FUNCTION CALLS OF INITOPTIONMODAL FOR PLAYERS WITH ID > 0
           stateObj.seesModal = true;
           initOptionModal(gameNode, displayOptionModal);
         }
         // when someone (including urself) makes a bet
         else if (betHasBeenMade(gameNode)) {
-          minBetHolder = getLarger(gameNode.recentBet, minBetHolder);
+          minBetHolder = getNewMinBet(gameNode.recentBet); //// @@@@@@@@@@@@@@ PART OF FIX FOR RAISES/CALLS and below for total pot
+          totalPotHolder = getNewTotalPot(gameNode.recentBet); 
           updateTurnCount();
           hideOptionModal();
           stateObj.canProcessModal = true;
@@ -585,12 +610,12 @@ YTK.game = (function() {
   setGameStatsInModal = function(gameNode) {
     var othersMoney = [],
         $potDiv = $('.amount', '.pot-total');
+        $callAmt = $('.btn-call .amount', '#optionModal'),
 
-    if (gameNode.hasOwnProperty('totalPot')) {
-      $potDiv.html(gameNode.totalPot);
-    } else {
-      $potDiv.html('0')
-    }
+    $potDiv.html(totalPotHolder);
+    console.log(minBetHolder, 'I SHOULD BE SEEING WHAT COMES IN THE CALL BUTTON HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+    $callAmt.html(minBetHolder);
+
     othersMoney = getOthersMoney(othersMoney);
 
     for (var i = 0; i < othersMoney.length; i++) {
@@ -629,7 +654,7 @@ YTK.game = (function() {
     else if (!(playerObj.money) >= bet && bet >= MIN_BET) {
       console.log('%cNot enough money to make bet', 'font-weight: bold; color: red;');
     }
-    else if (playerObj.money >= bet && !(bet >= MIN_BET)) {
+    else if (playerObj.money >= bet && !(bet >= MIN_BET) ) {
       console.log('%cNeed to make bigger bet', 'font-weight: bold; color: red;')
     }
   },
@@ -675,14 +700,11 @@ YTK.game = (function() {
     }, 1000);
   },
   canCheck = function() {
-    var myBet = playerObj.bet,
-        allEqual = true;
-
-    for (var i = 0; i<connectedPlayers.length; i++) {
-      if (myBet !== connectedPlayers[i].bet) {
-        allEqual = false;
-        break;
-      }
+    if (minBetHolder === 0) {
+      var allEqual = true;
+    } 
+    else {
+      var allEqual = false;
     }
     return allEqual;
   };
@@ -692,7 +714,6 @@ YTK.game = (function() {
         $betBtn   = $('.btn-makeBet', '#optionModal'),
         $checkBtn = $('.btn-check', '#optionModal'),
         $callBtn = $('.btn-call', '#optionModal'),
-        $callAmt = $('.btn-call .amount', '#optionModal'),
         $foldBtn  = $('.btn-fold', '#optionModal'),
         $minBet   = $('.min-bet', '#optionModal'),
         $betTxtBox = $('.bet-amount', '#optionModal'),
@@ -707,26 +728,25 @@ YTK.game = (function() {
     // for the very first turn of each round
     if (turnCount === 0) {
       hideDiv($callBtn);
-      hideDiv($checkBtn);
+      showDiv($checkBtn)
       $betBtn.html('Initial Bet');
     }
     else {
       if (canCheck()) {
         showDiv($checkBtn);
+        hideDiv($callBtn)
       }
       else {
         showDiv($callBtn);  
-      }
-      console.log('setting call amount', minBetHolder, myBet);
-      
-      $callAmt.html(minBetHolder - myBet);
+        hideDiv($checkBtn)
+      }      
       $betBtn.html('Raise');
     }
 
     // setup "check" button
-    if (turnCount !== 0 && whosTurn() === 0) {
+    if (turnCount !== 0 && whosTurn() === connectedPlayers.length - 1) {
       $checkBtn.off().on('click', function() {
-        database.ref('/game/recentBet').remove();
+        database.ref('/game/recentBet').remove(); //// **************** FOR ANDY: I'M NOT SURE WE NEED THIS REMOVAL, THERE IS NEVER A RECENTBET UNLESS RAISE/CALL IS CLICKED
         stateObj.preFlopBetsMade = true;
         turnCount = 0;
         cardAPIFree = true;
@@ -740,13 +760,31 @@ YTK.game = (function() {
     }
     else {
       $checkBtn.off().on('click', function() {
-        playerMakesBet(0);  // calling this just to trigger modal exchange
+        playerMakesBet(minBetHolder);  // calling this just to trigger modal exchange %%%%%% FROM YASH: WHEN PLAYER CHECKS I AM TREATING IT AS IF THEY MADE A BET OF ZERO
+      })
+    }
+
+    // setup "fold" button
+    if (playersLeftInGame === 2) { //// ********** ATTEMPT AT CODING/PSEUDOCODING IN FOLD CHECK FOR WHEN THERE ARE ONLY 2 PLAYERS LEFT IN ROUND AND ONE PLAYER FOLDS, THIS WOULD MEAN THAT THE ONE PLAYER LEFT GAINS THE POT AND AN ENTIRE NEW GAME SHOULD START
+      $foldBtn.off().on('click', function() {
+        var folderID = playerObj.id
+        var dbRef = '/game/inGameIDs'
+        database.ref(dbRef+'/'+folderID).remove().then(function() { /// FOR ANDY: I COULDN'T THINK OF ANYOTHER WAY TO COMMUNICATE ACROSS PLAYERS THAT A PLAYER HAS BEEN REMOVED FROM THE GAME SO I USED A SIMPLE DATASTRUCTURE IN FIREBASE, IF YOU CAN THINK OF A BETTER WAY PLEASE IMPLEMENT
+          database.ref(dbRef).once('value', function(snap) {
+            $.each(snap.val(), function(key, value) {
+              if (value !== undefined) {
+                connectedPlayers[key]['money'] = connectedPlayers[key]['money'] + totalPotHolder /// UPDATE MONEY OF WINNING PLAYER
+                YTK.db.dbUpdate(key, { money: connectedPlayers[key]['money']})
+              }
+            })
+          })
+        })
       })
     }
 
     // setup "bet" ("raise") button
     $betBtn.off().on('click', function() {
-      var bet = Math.floor(parseInt($('.bet-amount').val()));
+      var bet = Math.floor(parseInt($('.bet-amount').val())) + minBetHolder;
       playerMakesBet(bet); // update Firebase \player's Node
     });
     $('.bet-amount', '#optionModal').off().on('keyup', function(e) {
