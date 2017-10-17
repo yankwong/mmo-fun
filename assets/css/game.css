@@ -74,7 +74,10 @@
   .game-container .avatar {
     max-width: 100%; }
   .game-container #optionModal .first-row .community-cards {
-    width: 50%; }
+    margin: 10px 0;
+    text-align: center; }
+    .game-container #optionModal .first-row .community-cards .poker-card {
+      width: 70px; }
   .game-container #optionModal .first-row .btn-bet {
     font-size: 30px; }
   .game-container #optionModal .first-row .user-money {

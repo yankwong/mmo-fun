@@ -113,7 +113,12 @@
   #optionModal {
     .first-row {
       .community-cards {
-        width: 50%;
+        margin: 10px 0;
+        text-align: center;
+        
+        .poker-card {
+          width: 70px;
+        }
       }
       .btn-bet {
         font-size: 30px;

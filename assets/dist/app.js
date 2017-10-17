@@ -1,6 +1,6 @@
 $(function() {
   // animation that affect the entire programs goes here
-  console.log('Hi this is animation');
+  
 });
 
 $(document).on('gameStarted', function(e, playerID) {
@@ -61,7 +61,8 @@ var MAX_PLAYERS = 5,
     TOTAL_DECK = 1,
     MODAL_COUNTDOWN = 15,
     DEFAULT_ANTE = 5;
-    MIN_BET = 0;
+    MIN_BET = 0,
+    ENDGAME_RESULT_TIMER = 3000;
 // utility object to interact with FireBase
 var YTK = YTK || {};
 
@@ -124,7 +125,8 @@ YTK.game = (function() {
     community : '[]',
     communityShown : -1,
     bet       : 0,
-  }, 
+  },
+  gameDBListener,
   seats = [], // a 1:1 matching of seat-ID : player-ID
   stateObj = {  // keep track of various state of the program
     canPutFakeCard    : true,   // never reset
@@ -139,6 +141,10 @@ YTK.game = (function() {
     canProcessModal   : true,  // set to false when we started initModal to avoid init the same modal more than once
     initTotalPot      : false, // to see if initial total pot needs to be initialized at the start of the round
     inGameIDsUpdated  : false, // to see if the gameNode has been initialized/updated with whatever players are in the game
+    r1DeckUpdate      : false, // prevent unnecessary update of deck in DB
+    r2DeckUpdate      : false,
+    r3DeckUpdate      : false,
+    r4DeckUpdate      : false,
   },
   minBetHolder = 0, // for when min bet is raised through big enough bets in the round
   totalPotHolder = 0, // for updating the total pot to set in modal stats display
@@ -171,7 +177,7 @@ YTK.game = (function() {
     return node.hasOwnProperty('recentBet')
   },
   updateDeckObj = function(obj) {
-    console.log('... writing deck', obj);
+    console.log('... update local deck', obj);
     deckObj.id        = obj.id;
     deckObj.shuffled  = obj.shuffled;
     deckObj.remaining = obj.remaining;
@@ -281,7 +287,7 @@ YTK.game = (function() {
   },
   communityDraw = function(result) {
     var communityArray = [],
-      $communityCards = $('.community-area')
+        $communityCards = $('.community-area')
 
     for (var i = 0; i < result.cards.length; i++) {
       communityArray.push(result.cards[i].code);
@@ -387,6 +393,7 @@ YTK.game = (function() {
             putFakeCards($('.seat.player-' + i), 2);
           }  
         }
+console.log('round 0 doctor', isMyTurn(), !stateObj.seesModal);
         // turnCount start at 0, player 0 will always start first
         if (isMyTurn() && !stateObj.seesModal && playerObj.id === 0) { /// !!!!!!!!!!!!!!!!! ADDED THE THIRD CONDITION BECAUSE OF MULTIPLE FUNCTION CALLS OF INITOPTIONMODAL FOR PLAYERS WITH ID > 0
           stateObj.seesModal = true;
@@ -410,24 +417,25 @@ YTK.game = (function() {
           }
         }
       }
-      // AFTER THE PREFLOP BETS ARE IN, WE MUST DRAW THE COMMUNITY CARDS, STARTING WITH THE HOST
+      // Draw community cards, start with player id 0
       else if (stateObj.preFlopBetsMade) {
         // reset minBetHolder
         minBetHolder = 0;
+        // reset turnCount before the start of next turn
+        turnCount = 0;
+        
 
         // HOST: draw commuinty card 
         if (isHost() && cardAPIFree) {
           cardAPIFree = false;
           YTK.cards.drawCards(deckObj.id, 3, function(result) {
             communityDraw(result);
-            YTK.db.dbUpdate('game', {communityHand : result, howManySeeGameStats : 0}, function() {
-              //reset database "preFlopBetsMade"
-              stateObj.preFlopBetsMade = false;
 
-              // go to round 1
-              YTK.db.dbUpdate('game', {round : 1, preFlopBetsMade: false}, function() {
-                YTK.db.dbUpdate(playerObj.id, {communityShown: 1, bet : 0});
-              });
+            // go to round 1
+            YTK.db.dbUpdate('game', {communityHand : result, howManySeeGameStats : 0, round: 1, preFlopBetsMade: false}, function() {
+              // reset database "preFlopBetsMade"
+              stateObj.preFlopBetsMade = false;
+              YTK.db.dbUpdate(playerObj.id, {communityShown: 1, bet : 0});
             });
           });
         }        
@@ -438,7 +446,8 @@ YTK.game = (function() {
       console.log('%c--- ROUND '+dbGameRound+' ---', 'font-weight: bold; color: gold');
 
       if (isHost()) {
-        if (!communityReady(dbGameRound)) {
+        if (!communityReady(dbGameRound) && !stateObj.r1DeckUpdate) {
+          stateObj.r1DeckUpdate = true;
           updateDBDeck(); //update deck data in firebase, no drawing 
         }
       }
@@ -452,12 +461,17 @@ YTK.game = (function() {
             playerObj.communityShown = dbGameRound;
 
             YTK.db.dbUpdate(playerObj.id, {communityShown: dbGameRound, bet : 0});
+
+            // reset turnCount before the start of next turn
+            turnCount = 0;
           }
           stateObj.communityDrawFree = true;
         }
       }
 
       if (communityReady(dbGameRound)) {
+
+        cardAPIFree = true; // done with cardAPI, reset state
 
         // logics here is for all the betting before we are ready
         // to give out one more community card
@@ -488,6 +502,8 @@ YTK.game = (function() {
         else if (stateObj.preFlopBetsMade) {
           playerObj.communityShown = false;
           minBetHolder = 0;
+          // reset turnCount before the start of next turn
+          turnCount = 0;
 
           // reset communityShown for everybody
           if (isHost()) {
@@ -499,10 +515,10 @@ YTK.game = (function() {
     // ROUND II | round 2
     else if (dbGameRound === 2) {
       console.log('%c--- ROUND '+dbGameRound+' ---', 'font-weight: bold; color: gold');
-      cardAPIFree = true;
-
+      
       if (isHost()) {
-        if (!communityReady(dbGameRound)) {
+        if (!communityReady(dbGameRound) && !stateObj.r2DeckUpdate) {
+          stateObj.r2DeckUpdate = true;
           updateDBDeck(); //update deck data in firebase, no drawing 
         }
       }
@@ -516,12 +532,18 @@ YTK.game = (function() {
             playerObj.communityShown = dbGameRound;
 
             YTK.db.dbUpdate(playerObj.id, {communityShown: dbGameRound, bet : 0});
+
+            // reset turnCount before the start of next turn
+            turnCount = 0;
           }
           stateObj.communityDrawFree = true;
         }
       }
-
+console.log('round III doctor', communityReady(dbGameRound));
       if (communityReady(dbGameRound)) {
+
+        cardAPIFree = true;
+console.log('round 3 doctor II', isMyTurn(), !stateObj.seesModal);
         // logics here is for all the betting before we are ready
         // to give out one more community card
         if (!stateObj.preFlopBetsMade) {
@@ -563,11 +585,12 @@ YTK.game = (function() {
 
     // ROUND III, END GAME!!!
     else if (dbGameRound === 3) {
-      console.log('%c--- ROUND '+dbGameRound+' ---', 'font-weight: bold; color: gold');
-      cardAPIFree = true;
+      console.log('%c--- END GAME ---', 'font-weight: bold; color: gold');
+      
 
       if (isHost()) {
-        if (!communityReady(dbGameRound)) {
+        if (!communityReady(dbGameRound) && !stateObj.r3DeckUpdate) {
+          stateObj.r3DeckUpdate = true;
           updateDBDeck(); //update deck data in firebase, no drawing 
         }
       }
@@ -586,80 +609,100 @@ YTK.game = (function() {
       }
 
       if (communityReady(dbGameRound)) {
+        turnCount = 0;
+        cardAPIFree = true;
+        console.log('this is end game');
+        
+        initEndGameModal(function() {
+          $('#endModal').modal({backdrop: 'static', keyboard: false});
+        });
 
-        // logics here is for all the betting before we are ready
-        // to give out one more community card
-        if (!stateObj.preFlopBetsMade) {
-          if (isMyTurn() && !stateObj.seesModal) {
-            stateObj.seesModal = true;
-            initOptionModal(gameNode, displayOptionModal);
-          }
-          // when someone (including urself) makes a bet
-          else if (betHasBeenMade(gameNode)) {
-            
-            minBetHolder = getLarger(gameNode.recentBet, minBetHolder);
-            updateTurnCount();
-            hideOptionModal();
-            stateObj.canProcessModal = true;
-            stateObj.seesModal = false;
-            
-            // show your modal if it's your turn
-            if (isMyTurn() && stateObj.canProcessModal) {
-              stateObj.canProcessModal = false;
-              database.ref('/game/recentBet').remove().then(function() {
-                initOptionModal(gameNode, displayOptionModal);  
-              });
-            }
-          }
-        }
-        // ready to increament round
-        else if (stateObj.preFlopBetsMade) {
-          alert('END GAME HERE YO!!!!');
-          exit();
-          playerObj.communityShown = false;
-          minBetHolder = 0;
+        setTimeout( function() {
+          $('#endModal').modal('hide');
+          restartGame();  
+        }, ENDGAME_RESULT_TIMER);
+        
 
-          if (isHost()) {
-            // handleFlop(gameNode);
-            alert('END GAME HERE YO!!!!');
-            exit();
-          }        
-        }
+        // initEndGameModal(function() {
+          //$('#endModal').modal('show');
+        // });
+        
       }
     }
 
 
   },
+  resetStateObj = function() {
+    stateObj = {
+      canPutFakeCard    : true,   // never reset
+      communityDrawFree : true,   // reset
+      canAssignSeat     : true,   // reset
+      needPlayersStats  : true,   // never reset
+      seesModal         : false,  //set to true when #optionModal displays
+      givenAnte         : false,  // set to true when player makes ante for round
+      allDecisionsSatisfied: false,  // to be used to justify the instance of the subsequent round
+      preFlopBetsMade   : false,  // set to true when all bets are in prior to flop
+      firstRoundBetsMade: false, // set to true when bets are made in the first round following the flop
+      canProcessModal   : true,  // set to false when we started initModal to avoid init the same modal more than once
+      initTotalPot      : false, // to see if initial total pot needs to be initialized at the start of the round
+      inGameIDsUpdated  : false, // to see if the gameNode has been initialized/updated with whatever players are in the game
+      r1DeckUpdate      : false, // prevent unnecessary update of deck in DB
+      r2DeckUpdate      : false,
+      r3DeckUpdate      : false,
+      r4DeckUpdate      : false,
+    };
+  },
+  initEndGameModal = function(callback) {
+    var endModal = '#endModal';
+
+    $.each(connectedPlayers, function(index, player){
+      var pDiv = '.p' + player.id;
+
+      showDiv($(pDiv));
+
+      if (playerObj.id === player.id) {
+        $(pDiv, endModal).find('.name').html('<b>YOU</b>');  
+      }
+      else {
+        $(pDiv, endModal).find('.name').html(player.name);  
+      }
+      $(pDiv, endModal).find('.money').html(player.money);
+    });
+
+    // logic to restart game
+    // $(endModal).on('hide.bs.modal', function() {
+    //   restartGame();
+    // });
+    callback();
+  },
+  restartGame = function() {
+    // clean up community cards from html and database
+    $('.community-area', '.game-container').html();
+    $('.poker-card', '.game-container').remove();
+    database.ref().off('value', gameDBListener);
+
+    if (isHost()) {
+      database.ref('/game').child('communityHand').remove().then(function() {
+        YTK.db.dbUpdate(playerObj.id, {hand : '', bet : 0, communityShown : -1}, function() {
+          resetStateObj();
+          initGame(playerObj.id);            
+        });
+      })
+    }
+    else {
+      showDiv($('.page-loader'));
+      setTimeout(function() {
+        YTK.db.dbUpdate(playerObj.id, {hand : '', bet : 0, communityShown : -1}, function() {
+          resetStateObj();
+          initGame(playerObj.id);            
+        });
+      }, 1000);  
+    }
+  },
   communityShownOnRound = function(round) {
     return playerObj.communityShown === round;
   },
-  // determine whether to show your modal or not
-  // when a bet is made, close current model (if any)
-  // then open ur modal if it's ur turn 
-  // firebase: clear "/game/recentBet"
-  // firebase: the modal can triggers multiple DB updates
-  // handleModalTurns = function(gameNode) {
-  //   if (isMyTurn() && !stateObj.seesModal) {
-  //     stateObj.seesModal = true;
-  //     initOptionModal(gameNode, displayOptionModal);
-  //   }
-  //   // when someone (including urself) makes a bet
-  //   else if (betHasBeenMade(gameNode)) {
-  //     minBetHolder = getLarger(gameNode.recentBet, minBetHolder);
-  //     updateTurnCount();
-  //     hideOptionModal();
-  //     stateObj.canProcessModal = true;
-  //     stateObj.seesModal = false;
-      
-  //     // show your modal if it's your turn
-  //     if (isMyTurn() && stateObj.canProcessModal) {
-  //       stateObj.canProcessModal = false;
-  //       database.ref('/game/recentBet').remove().then(function() {
-  //         initOptionModal(gameNode, displayOptionModal);  
-  //       });
-  //     }
-  //   }
-  // },
+  
   // 1. draw card from cardAPI 
   // 2. update firebase with newly drawn community card
   // 3. update firebase with round ++
@@ -717,7 +760,6 @@ YTK.game = (function() {
         $callAmt = $('.btn-call .amount', '#optionModal'),
 
     $potDiv.html(totalPotHolder);
-    console.log(minBetHolder, 'I SHOULD BE SEEING WHAT COMES IN THE CALL BUTTON HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
     $callAmt.html(minBetHolder);
 
     othersMoney = getOthersMoney(othersMoney);
@@ -775,7 +817,7 @@ YTK.game = (function() {
   },
   displayOptionModal = function() {
     var $optModal = $('#optionModal');
-    $optModal.modal('show');  
+    $optModal.modal({backdrop: 'static', keyboard: false});  
   },
   hideOptionModal = function() {
     var $optModal = $('#optionModal');
@@ -851,17 +893,17 @@ console.log('grab community cards');
     }
 
     // setup "check" button
+    // case 1: last player on quene clicked: end turn
     if (turnCount !== 0 && whosTurn() === connectedPlayers.length - 1) {
       $checkBtn.off().on('click', function() {
-        database.ref('/game/recentBet').remove(); //// **************** FOR ANDY: I'M NOT SURE WE NEED THIS REMOVAL, THERE IS NEVER A RECENTBET UNLESS RAISE/CALL IS CLICKED
-        stateObj.preFlopBetsMade = true;
-        turnCount = 0;
-        cardAPIFree = true;
 
+        // database.ref('/game/recentBet').remove();
+        
         // close modal
         hideOptionModal();
         stateObj.seesModal = false;
-        
+
+        stateObj.preFlopBetsMade = true;
         YTK.db.dbUpdate('game', {preFlopBetsMade: true});
       });
     }
@@ -919,7 +961,7 @@ console.log('grab community cards');
     }
   },
   setDBListener = function() { // listen to all firebase changes
-    database.ref().on('value', function(snapshot) {
+    gameDBListener = database.ref().on('value', function(snapshot) {
       console.log('(DB-Value, game)', snapshot.val());
 
       // on DB deck change: update local deck
@@ -1322,7 +1364,7 @@ YTK.login = (function() {
         getOnlinePlayers(snapshot);
         updateRdyBtn();
         gameStartListener(snapshot);
-        console.log('(DB-Value, login)', snapshot.val());  
+        // console.log('(DB-Value, login)', snapshot.val());  
       }
     });
   },

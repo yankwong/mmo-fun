@@ -4,4 +4,5 @@ var MAX_PLAYERS = 5,
     TOTAL_DECK = 1,
     MODAL_COUNTDOWN = 15,
     DEFAULT_ANTE = 5;
-    MIN_BET = 0;
+    MIN_BET = 0,
+    ENDGAME_RESULT_TIMER = 3000;

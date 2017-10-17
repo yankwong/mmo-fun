@@ -348,7 +348,7 @@ YTK.login = (function() {
         getOnlinePlayers(snapshot);
         updateRdyBtn();
         gameStartListener(snapshot);
-        console.log('(DB-Value, login)', snapshot.val());  
+        // console.log('(DB-Value, login)', snapshot.val());  
       }
     });
   },
