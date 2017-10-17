@@ -179,7 +179,6 @@ YTK.game = (function() {
     return node.hasOwnProperty('recentBet')
   },
   updateDeckObj = function(obj) {
-    console.log('... update local deck', obj);
     deckObj.id        = obj.id;
     deckObj.shuffled  = obj.shuffled;
     deckObj.remaining = obj.remaining;
@@ -647,7 +646,6 @@ YTK.game = (function() {
     $.each($cCards, function(index, card) {
       retArr.push($(card).attr('data-cid'));
     });
-    console.log('retArr: ', retArr);
     return retArr;
   },
 
@@ -709,7 +707,6 @@ YTK.game = (function() {
     var endModal = '#endModal';
 
     $('.summary .name', endModal).html(connectedPlayers[winnerID].name);
-console.log('end game doc', connectedPlayers)
     $.each(connectedPlayers, function(index, player){
       var pDiv = '.p' + player.id;
 
@@ -778,12 +775,9 @@ console.log('end game doc', connectedPlayers)
 
     if (cardAPIFree) {
       cardAPIFree = false;
-      console.log('about to draw card', totalDraw);
       YTK.cards.drawCards(deckObj.id, totalDraw, function(result) {
         communityDraw(result);
-        console.log('about to update game node', )
         YTK.db.dbUpdate('game', {communityHand : result, howManySeeGameStats : 0, preFlopBetsMade: false, round : upcomingRound}, function() {
-          console.log('yooo! updated game round!! round is now:', upcomingRound);
           YTK.db.dbUpdate(playerObj.id, {communityShown : upcomingRound, bet : 0});
         });
       });
@@ -909,8 +903,6 @@ console.log('end game doc', connectedPlayers)
     var $communityArea = $('.community-area', '.game-container'),
         $modalCCards   = $('.community-cards', '#optionModal'),
         communityCards = $communityArea.html();
-
-console.log('grab community cards');
 
     if (communityCards !== '') {
       $modalCCards.html($communityArea.html())  
