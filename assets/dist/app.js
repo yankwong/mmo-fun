@@ -6,7 +6,6 @@ $(function() {
 $(document).on('gameStarted', function(e, playerID) {
   // animation that affect only the game part of the programs goes here
 }); 
-
 // utility object to interact Deck of Card API
 var YTK = YTK || {};
 
@@ -275,7 +274,7 @@ YTK.game = (function() {
     }
   },
   putCard = function($div, cardCode) {
-    var $card = $('<div class="poker-card"><img src="' + YTK.cards.getImg(cardCode) + '" class="card-img" alt="'+cardCode+'"></div>');
+    var $card = $('<div class="poker-card" data-cid="' + cardCode +'"><img src="' + YTK.cards.getImg(cardCode) + '" class="card-img" alt="'+cardCode+'"></div>');
     $div.append($card);
   },
   updateDBDeck = function() {
@@ -352,7 +351,16 @@ YTK.game = (function() {
     // Handle end game, could happen at ANY round
     if (gameNode.doneTransfer && !stateObj.endModalShown) {
       stateObj.endModalShown = true; 
-      gameWinner = checkWhoWon();
+
+      if (gameWinner == -1) {
+        if (gameNode.round < 3) {
+          gameWinner = playerObj.id;
+        }
+        else {
+          gameWinner = checkWhoWon();
+        }  
+      }
+      
       initEndGameModal(gameWinner, function() {
         $('#endModal').modal({backdrop: 'static', keyboard: false});
       });
@@ -619,7 +627,7 @@ YTK.game = (function() {
           }
         }
 
-
+        // natural game end, we need to compare poker rank
         if (communityReady(dbGameRound)) {
 
           if (isHost() && !stateObj.processWinner) {
@@ -628,28 +636,49 @@ YTK.game = (function() {
             transferPotToWinner(gameWinner);
           }
           
-          // if (gameNode.doneTransfer && !stateObj.endModalShown) {
-          //   stateObj.endModalShown = true; 
-          //   gameWinner = checkWhoWon();
-          //   initEndGameModal(gameWinner, function() {
-          //     $('#endModal').modal({backdrop: 'static', keyboard: false});
-          //   });
-
-          //   setTimeout( function() {
-          //     $('#endModal').modal('hide');
-          //     restartGame();  
-          //   }, ENDGAME_RESULT_TIMER);   
-          // }
-          
         }
       }
-    } // game hasn't ended
-
+    }
   },
+  getCommunityDraws = function() {
+    var $cCards = $('.poker-card', '.game-container .community-area'),
+        retArr = [];
+
+    $.each($cCards, function(index, card) {
+      retArr.push($(card).attr('data-cid'));
+    });
+    console.log('retArr: ', retArr);
+    return retArr;
+  },
+
   checkWhoWon = function() {
-    // Don't gamble kids, the host always win.
-    // but seriously, check for exsisting solution
-    return 0;
+    var scoreArray = [],
+        solvedArray = [],
+        communityCardsArr = getCommunityDraws(),
+        totalCards,
+        cardSolved;
+
+    $.each(connectedPlayers, function(index, player) {
+      // combine players hand with community draws
+      totalCards = communityCardsArr.concat(JSON.parse(player.hand));
+      
+      if (totalCards.length > 0) {
+        cardSolved = Hand.solve(totalCards);
+        scoreArray.push(cardSolved.rank);
+        solvedArray.push(cardSolved);
+      }
+    });
+
+    console.log('%c---Poker Rank Comparison---', 'font-weight: bold; color: red;')
+    console.log(solvedArray, scoreArray);
+    // if (solvedArray.length > 0) {
+    //   var p1 = solvedArray[0];
+    //   var p2 = solvedArray[1];
+    //   console.log('how is the score so far: ', Hand.winners([p1, p2]), );  
+    // }
+
+    // return the index with the larger "rank"
+    return scoreArray.reduce((iMax, x, i, arr) => x > arr[iMax] ? i : iMax, 0);
   },
   resetStateObj = function() {
     stateObj = {
@@ -941,13 +970,20 @@ console.log('grab community cards');
       })
     }
 
-    // setup "fold" button
-    if (playersLeftInGame === 2) { 
+    // setup "fold" button, only works if there are 2 players left
+    if (playersLeftInGame === 2) {
       $foldBtn.off().on('click', function() {
         hideOptionModal();
         stateObj.seesModal = false;
-        gameWinner = 0;
-        transferPotToWinner(0);
+        
+        // transfer pot to "the other player"
+        for (var i = 0; i < connectedPlayers.length; i++) {
+          if (connectedPlayers[i].id !== playerObj.id) {
+            gameWinner = connectedPlayers[i].id;
+            transferPotToWinner(connectedPlayers[i].id);    
+          }
+        }
+
       });
     }
 
