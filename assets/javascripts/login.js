@@ -281,8 +281,11 @@ YTK.login = (function() {
     return connectedPlayers.length > 1 && getHostID() >= 0;
   },
   setToHost = function() {
-    playerObj.host = true;
-    YTK.db.dbUpdate(playerObj.id, {host : true});
+    if (playerObj.id === 0) {
+      playerObj.host = true;  
+    }
+    
+    YTK.db.dbUpdate(0, {host : true});
   },
   startCountdown = function() {
     database.ref().once('value', function(snapshot) {
