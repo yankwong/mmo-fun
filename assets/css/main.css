@@ -8,7 +8,8 @@
   background-repeat: no-repeat;
   background-image: url("../images/sprite/avatars.jpg"); }
   .avatar:hover {
-    border: 2px solid gold; }
+    border: 2px solid gold;
+    cursor: pointer; }
   .avatar.avatar-0 {
     background-position: -935px -330px; }
   .avatar.avatar-1 {
@@ -48,6 +49,8 @@ input::placeholder {
     justify-content: center; }
     .login-container .user-name .user-form {
       text-align: center; }
+      .login-container .user-name .user-form .btn {
+        cursor: pointer; }
       .login-container .user-name .user-form .username {
         width: 70%;
         text-align: center;
@@ -85,7 +88,10 @@ input::placeholder {
         float: right;
         padding: 0.2rem .6rem;
         margin-left: 5px;
-        color: green; }
+        color: green;
+        cursor: pointer; }
+      .login-container .connected-players .player .dc-btn {
+        cursor: pointer; }
       .login-container .connected-players .player .status {
         float: right; }
 

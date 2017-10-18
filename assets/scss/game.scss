@@ -122,10 +122,12 @@
       .user-money{
         border-radius: 500px;
         background: yellow;
+        margin: 0 auto;
       }
       .pot-total{
         border-radius: 80px;
         background: lightblue;
+        margin: 0 auto;
       }
       .community-cards {
         margin: 10px 0;
@@ -170,6 +172,7 @@
     }
     .btn{
       border-radius: 500px;
+      cursor: pointer;
     }
     .btns-row{
       .btn{

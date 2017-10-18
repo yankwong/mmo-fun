@@ -4,6 +4,8 @@ $shadow:
 -1px 1px 0 #000,
 1px 1px 0 #000;
 
+
+
 .hidden {
   display: none !important;
 }
@@ -17,6 +19,7 @@ $shadow:
 
   &:hover {
     border: 2px solid gold;
+    cursor: pointer;
   }
 
   &.avatar-0 {
@@ -73,6 +76,10 @@ input::placeholder{
     .user-form {
       text-align: center;
 
+      .btn{
+        cursor: pointer;
+      }
+
       .username {
         width: 70%;
         text-align: center;
@@ -123,6 +130,10 @@ input::placeholder{
         padding: 0.2rem .6rem;
         margin-left: 5px;
         color: green;
+        cursor: pointer;
+      }
+      .dc-btn{
+        cursor: pointer;
       }
       .status {
         float: right;
