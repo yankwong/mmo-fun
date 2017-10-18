@@ -395,20 +395,23 @@ YTK.game = (function() {
           // to give out one more community card
           if (!stateObj.preFlopBetsMade) {
             if (isMyTurn() && !stateObj.seesModal) {
+              console.log('asl;dghiewoighweoighweoihgwe')
               stateObj.seesModal = true;
               initOptionModal(gameNode, displayOptionModal);
             }
             // when someone (including urself) makes a bet
             else if (betHasBeenMade(gameNode)) {
-              
-              minBetHolder = getLarger(gameNode.recentBet, minBetHolder);
+              console.log('A BET HAS BEEN MADE')
+              minBetHolder = getNewMinBet(gameNode.recentBet); //// @@@@@@@@@@@@@@ PART OF FIX FOR RAISES/CALLS and below for total pot
+              totalPotHolder = getNewTotalPot(gameNode.recentBet); 
               updateTurnCount();
               hideOptionModal();
               stateObj.canProcessModal = true;
               stateObj.seesModal = false;
-              
+              console.log(isMyTurn(), turnCount)
               // show your modal if it's your turn
               if (isMyTurn() && stateObj.canProcessModal) {
+                console.log('ASDFDSFASDGHWAEGOIWEHGEOWIGH')
                 stateObj.canProcessModal = false;
                 database.ref('/game/recentBet').remove().then(function() {
                   initOptionModal(gameNode, displayOptionModal);  
@@ -470,8 +473,8 @@ YTK.game = (function() {
             }
             // when someone (including urself) makes a bet
             else if (betHasBeenMade(gameNode)) {
-              
-              minBetHolder = getLarger(gameNode.recentBet, minBetHolder);
+              minBetHolder = getNewMinBet(gameNode.recentBet); //// @@@@@@@@@@@@@@ PART OF FIX FOR RAISES/CALLS and below for total pot
+              totalPotHolder = getNewTotalPot(gameNode.recentBet);               
               updateTurnCount();
               hideOptionModal();
               stateObj.canProcessModal = true;
@@ -888,9 +891,31 @@ YTK.game = (function() {
     });
     
     // setup the "call" button
-    $callBtn.off().on('click', function() {
-      playerMakesBet(minBetHolder);
-    });
+    if (turnCount !== 0 && whosTurn() === connectedPlayers.length - 1) {
+      $callBtn.off().on('click', function() {
+                // close modal
+        hideOptionModal();
+        stateObj.seesModal = false;
+        playerMakesBet(minBetHolder);
+
+        stateObj.preFlopBetsMade = true;
+        if (gameNode.round !== 2) {
+          console.log(gameNode, 'THE SET TIMEOUT DID RUN!!!!!!!!!!!!!!!!!!!')
+          setTimeout(function() { //!!! DEBUG!! hacky (can only update this when gameNode doesn't have a recentBet)
+            YTK.db.dbUpdate('game', {preFlopBetsMade: true});  
+          }, 100);
+        } else {
+          console.log('THE SET TIMEOUT DID NOT RUN!!!!!!!!!!!!!!!!!!')
+          YTK.db.dbUpdate('game', {preFlopBetsMade: true});
+        }
+        
+        //turnCount = 0
+      });
+    } else {
+      $callBtn.off().on('click', function() {
+        playerMakesBet(minBetHolder); /// should trigger modal exchange when it is player id 0 only
+      });
+    }
 
     callback();
   },
