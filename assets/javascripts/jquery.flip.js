@@ -168,12 +168,12 @@
       var perspective = self.element["outer" + (rotateAxis === "rotatex" ? "Height" : "Width")]() * 2;
       var elementCss = {
         'perspective': perspective,
-        'position': 'relative'
+        'position': 'absolute'
       };
       var backElementCss = {
         "transform": rotateAxis + "(" + (self.setting.reverse ? "180deg" : "-180deg") + ")",
         "z-index": "0",
-        "position": "relative"
+        "position": "absolute"
       };
       var faceElementCss = {
         "backface-visibility": "hidden",
