@@ -72,6 +72,7 @@ YTK.game = (function() {
     return node.hasOwnProperty('host');
   },
   betHasBeenMade = function(node) { // did this player make a bet?
+    console.log('%cBet Detected', 'font-weight: bold; color: green');
     return node.hasOwnProperty('recentBet')
   },
   updateDeckObj = function(obj) {
@@ -664,6 +665,8 @@ YTK.game = (function() {
   handleFlop = function(gameNode) {
     var totalDraw = 0,
         upcomingRound = gameNode.round + 1;
+
+console.log('%cHandle Flop Called', 'font-weight: bold; color: blue;');
 
     if (gameNode.round === 0) {
       totalDraw = 3;
