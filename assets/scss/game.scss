@@ -23,7 +23,6 @@
   }
 
   .seat {
-    border: 1px solid black;
     text-align: center;
 
     .name {
@@ -42,6 +41,10 @@
     .avatar {
       background-image: none;
       margin: 0 auto;
+
+      &:hover{
+        border: 0;
+      }
 
       &.avatar-0 {
         background-image: url('../images/sprite/avatars.jpg');
@@ -111,7 +114,19 @@
   }
 
   #optionModal {
+    .modal-header {
+      display: flex;
+      justify-content: center;
+    }
     .first-row {
+      .user-money{
+        border-radius: 500px;
+        background: yellow;
+      }
+      .pot-total{
+        border-radius: 80px;
+        background: lightblue;
+      }
       .community-cards {
         margin: 10px 0;
         text-align: center;
@@ -143,9 +158,22 @@
       padding: 20px 0;
       align-items: center;
       display: flex;
+      justify-content: center;
 
       .btn-match {
         margin-left: 15px;
+      }
+      .bet-amount{
+        border-radius: 5px;
+        text-align: center;
+      }
+    }
+    .btn{
+      border-radius: 500px;
+    }
+    .btns-row{
+      .btn{
+        margin: 0 auto;
       }
     }
   }
