@@ -41,50 +41,53 @@ input::placeholder {
   color: white;
   text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
 
-.login-container .user-name {
-  justify-content: center;
+.login-container {
+  min-height: 100vh;
   padding-bottom: 10%; }
-  .login-container .user-name .user-form {
-    text-align: center; }
-    .login-container .user-name .user-form .username {
-      width: 70%;
+  .login-container .user-name {
+    justify-content: center; }
+    .login-container .user-name .user-form {
+      text-align: center; }
+      .login-container .user-name .user-form .username {
+        width: 70%;
+        text-align: center;
+        padding: 0 10px;
+        background-color: rgba(0, 0, 0, 0.1);
+        color: white; }
+  .login-container .avatar-select {
+    display: flex;
+    justify-content: center; }
+    .login-container .avatar-select .avatar {
+      margin: 0 auto;
+      margin-bottom: 30%;
+      background-color: transparent;
+      cursor: pointer; }
+      .login-container .avatar-select .avatar.picked {
+        cursor: default; }
+    .login-container .avatar-select .title {
       text-align: center;
-      padding: 0 10px;
-      background-color: rgba(0, 0, 0, 0.1);
-      color: white; }
-.login-container .avatar-select {
-  display: flex;
-  justify-content: center; }
-  .login-container .avatar-select .avatar {
+      margin: 20px;
+      text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
+  .login-container .connected-players {
+    height: 200px;
+    width: 60%;
+    color: gold;
+    opacity: 0.8;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
     margin: 0 auto;
-    margin-bottom: 30%;
-    background-color: transparent;
-    cursor: pointer; }
-    .login-container .avatar-select .avatar.picked {
-      cursor: default; }
-  .login-container .avatar-select .title {
-    text-align: center;
-    margin: 20px;
-    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
-.login-container .connected-players {
-  height: 200px;
-  width: 60%;
-  color: gold;
-  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-  margin: 0 auto;
-  margin-bottom: 30%; }
-  .login-container .connected-players .player {
-    padding: 5px 10px; }
-    .login-container .connected-players .player .dc-btn {
-      float: right;
-      padding: 0.2rem .6rem; }
-    .login-container .connected-players .player .ready-btn {
-      float: right;
-      padding: 0.2rem .6rem;
-      margin-left: 5px;
-      color: green; }
-    .login-container .connected-players .player .status {
-      float: right; }
+    margin-bottom: 30%; }
+    .login-container .connected-players .player {
+      padding: 5px 10px; }
+      .login-container .connected-players .player .dc-btn {
+        float: right;
+        padding: 0.2rem .6rem; }
+      .login-container .connected-players .player .ready-btn {
+        float: right;
+        padding: 0.2rem .6rem;
+        margin-left: 5px;
+        color: green; }
+      .login-container .connected-players .player .status {
+        float: right; }
 
 #loader {
   bottom: 0;
@@ -95,104 +98,74 @@ input::placeholder {
   right: 0;
   top: 0;
   width: 175px; }
-
-#loader {
-  bottom: 0;
-  height: 175px;
-  left: 0;
-  margin: auto;
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 175px; }
-
-#loader .dot {
-  bottom: 0;
-  height: 100%;
-  left: 0;
-  margin: auto;
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 87.5px; }
-
-#loader .dot::before {
-  border-radius: 100%;
-  content: "";
-  height: 87.5px;
-  left: 0;
-  position: absolute;
-  right: 0;
-  top: 0;
-  transform: scale(0);
-  width: 87.5px; }
-
-#loader .dot:nth-child(7n+1) {
-  transform: rotate(45deg); }
-
-#loader .dot:nth-child(7n+1)::before {
-  animation: 0.8s linear 0.1s normal none infinite running load;
-  background: #00ff80 none repeat scroll 0 0; }
-
-#loader .dot:nth-child(7n+2) {
-  transform: rotate(90deg); }
-
-#loader .dot:nth-child(7n+2)::before {
-  animation: 0.8s linear 0.2s normal none infinite running load;
-  background: #00ffea none repeat scroll 0 0; }
-
-#loader .dot:nth-child(7n+3) {
-  transform: rotate(135deg); }
-
-#loader .dot:nth-child(7n+3)::before {
-  animation: 0.8s linear 0.3s normal none infinite running load;
-  background: #00aaff none repeat scroll 0 0; }
-
-#loader .dot:nth-child(7n+4) {
-  transform: rotate(180deg); }
-
-#loader .dot:nth-child(7n+4)::before {
-  animation: 0.8s linear 0.4s normal none infinite running load;
-  background: #0040ff none repeat scroll 0 0; }
-
-#loader .dot:nth-child(7n+5) {
-  transform: rotate(225deg); }
-
-#loader .dot:nth-child(7n+5)::before {
-  animation: 0.8s linear 0.5s normal none infinite running load;
-  background: #2a00ff none repeat scroll 0 0; }
-
-#loader .dot:nth-child(7n+6) {
-  transform: rotate(270deg); }
-
-#loader .dot:nth-child(7n+6)::before {
-  animation: 0.8s linear 0.6s normal none infinite running load;
-  background: #9500ff none repeat scroll 0 0; }
-
-#loader .dot:nth-child(7n+7) {
-  transform: rotate(315deg); }
-
-#loader .dot:nth-child(7n+7)::before {
-  animation: 0.8s linear 0.7s normal none infinite running load;
-  background: magenta none repeat scroll 0 0; }
-
-#loader .dot:nth-child(7n+8) {
-  transform: rotate(360deg); }
-
-#loader .dot:nth-child(7n+8)::before {
-  animation: 0.8s linear 0.8s normal none infinite running load;
-  background: #ff0095 none repeat scroll 0 0; }
-
-#loader .lading {
-  background-image: url("../images/loading.gif");
-  background-position: 50% 50%;
-  background-repeat: no-repeat;
-  bottom: -40px;
-  height: 20px;
-  left: 0;
-  position: absolute;
-  right: 0;
-  width: 180px; }
+  #loader .dot {
+    bottom: 0;
+    height: 100%;
+    left: 0;
+    margin: auto;
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 87.5px; }
+  #loader .dot::before {
+    border-radius: 100%;
+    content: "";
+    height: 87.5px;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    transform: scale(0);
+    width: 87.5px; }
+  #loader .dot:nth-child(7n+1) {
+    transform: rotate(45deg); }
+  #loader .dot:nth-child(7n+1)::before {
+    animation: 0.8s linear 0.1s normal none infinite running load;
+    background: #00ff80 none repeat scroll 0 0; }
+  #loader .dot:nth-child(7n+2) {
+    transform: rotate(90deg); }
+  #loader .dot:nth-child(7n+2)::before {
+    animation: 0.8s linear 0.2s normal none infinite running load;
+    background: #00ffea none repeat scroll 0 0; }
+  #loader .dot:nth-child(7n+3) {
+    transform: rotate(135deg); }
+  #loader .dot:nth-child(7n+3)::before {
+    animation: 0.8s linear 0.3s normal none infinite running load;
+    background: #00aaff none repeat scroll 0 0; }
+  #loader .dot:nth-child(7n+4) {
+    transform: rotate(180deg); }
+  #loader .dot:nth-child(7n+4)::before {
+    animation: 0.8s linear 0.4s normal none infinite running load;
+    background: #0040ff none repeat scroll 0 0; }
+  #loader .dot:nth-child(7n+5) {
+    transform: rotate(225deg); }
+  #loader .dot:nth-child(7n+5)::before {
+    animation: 0.8s linear 0.5s normal none infinite running load;
+    background: #2a00ff none repeat scroll 0 0; }
+  #loader .dot:nth-child(7n+6) {
+    transform: rotate(270deg); }
+  #loader .dot:nth-child(7n+6)::before {
+    animation: 0.8s linear 0.6s normal none infinite running load;
+    background: #9500ff none repeat scroll 0 0; }
+  #loader .dot:nth-child(7n+7) {
+    transform: rotate(315deg); }
+  #loader .dot:nth-child(7n+7)::before {
+    animation: 0.8s linear 0.7s normal none infinite running load;
+    background: magenta none repeat scroll 0 0; }
+  #loader .dot:nth-child(7n+8) {
+    transform: rotate(360deg); }
+  #loader .dot:nth-child(7n+8)::before {
+    animation: 0.8s linear 0.8s normal none infinite running load;
+    background: #ff0095 none repeat scroll 0 0; }
+  #loader .lading {
+    background-position: 50% 50%;
+    background-repeat: no-repeat;
+    bottom: -40px;
+    height: 20px;
+    left: 0;
+    position: absolute;
+    right: 0;
+    width: 180px; }
 
 @keyframes load {
   100% {
@@ -202,5 +175,16 @@ input::placeholder {
   100% {
     opacity: 0;
     transform: scale(1); } }
+.page-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  background-color: black;
+  align-items: center;
+  z-index: 100; }
 
 /*# sourceMappingURL=main.css.map */
