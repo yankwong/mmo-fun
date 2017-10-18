@@ -126,7 +126,7 @@ YTK.game = (function() {
     bet       : 0,
   },
   gameWinner = -1,
-  gameDBListener,
+  gameDBListener, // used to restart a game
   seats = [], // a 1:1 matching of seat-ID : player-ID
   stateObj = {  // keep track of various state of the program
     canPutFakeCard    : true,   // never reset
@@ -297,8 +297,6 @@ YTK.game = (function() {
     }
 
     playerObj.community = JSON.stringify(communityArray);
-    
-    //!! hacky
     playerObj.communityShown = communityArray.length - 2;
   },
   putFakeCards = function($div, total) {    
@@ -307,7 +305,6 @@ YTK.game = (function() {
       $div.append($fakeCard);
     }
   },
-
   assignSeats = function() {
     stateObj.canAssignSeat = false;
     if (seats.length === 0 && connectedPlayers.length > 1) {
@@ -1308,7 +1305,7 @@ YTK.login = (function() {
 
         // end the game session if the disconnecting player is the host of the game
         // TODO: shift host when that happens
-        if (playerObj.host === true) {
+        if (playerObj.host === true || playerObj.id === 0) {
           YTK.db.dbRemoveNode('game');
           YTK.db.dbRemoveNode('deck');
         }

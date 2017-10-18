@@ -216,7 +216,7 @@ YTK.login = (function() {
 
         // end the game session if the disconnecting player is the host of the game
         // TODO: shift host when that happens
-        if (playerObj.host === true) {
+        if (playerObj.host === true || playerObj.id === 0) {
           YTK.db.dbRemoveNode('game');
           YTK.db.dbRemoveNode('deck');
         }
