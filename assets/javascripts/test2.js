@@ -6,6 +6,13 @@ $("#card5").flip();
 $("#card6").flip();
 $("#card7").flip();
 $("#card8").flip();
+
+
+$('.cardflip').click(function () {
+  console.log("ehjfaslfjaklosdf");
+  $('.cardflip').flip();
+});
+
 $('.stack').click(function () {
 
   $(".card").each(function (e) {
@@ -41,15 +48,15 @@ $('.shuffle').click(function () {
 
   });
 
-  setTimeout(function() {
+  setTimeout(function () {
     $(".card").each(function (e) {
-      
-          setTimeout(function () {
-            $(".card").eq(e).attr("class", "card");
-          }, e * 150)
-      
-        });
+
+      setTimeout(function () {
+        $(".card").eq(e).attr("class", "card");
+      }, e * 150)
+
+    });
   }, 500);
-  
+
 
 });

@@ -63,6 +63,11 @@
     width: 45%; }
     .game-container .community-area .poker-card {
       width: 100px; }
+  .game-container .deck-area {
+    border: 1px solid gold;
+    width: 10%; }
+    .game-container .deck-area .poker-card {
+      width: 100px; }
   .game-container .poker-card {
     display: inline-block; }
     .game-container .poker-card .fake-card {
@@ -72,6 +77,10 @@
     display: inline-block; }
   .game-container .player-0 .poker-card {
     width: 100px; }
+    .game-container .player-0 .poker-card .front {
+      width: 100px; }
+    .game-container .player-0 .poker-card .back {
+      width: 100px; }
   .game-container .avatar {
     max-width: 100%; }
   .game-container #optionModal .modal-header {

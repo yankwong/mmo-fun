@@ -94,6 +94,13 @@
     }
   }
 
+  .deck-area{
+    border: 1px solid gold;
+    width: 10%;
+    .poker-card{
+      width:100px;
+    }
+  }
   .poker-card {
     display: inline-block;
     .fake-card {
@@ -107,7 +114,14 @@
     }
     .poker-card {
       width: 100px;
+      .front{
+        width: 100px;
+      }
+      .back{
+        width: 100px;
+      }
     }
+
   }
   .avatar {
     max-width: 100%;

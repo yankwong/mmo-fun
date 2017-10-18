@@ -108,6 +108,7 @@ YTK.game = (function() {
           $selfHand = $('.hand', '.player-0');
       // 1. update the user's hand
       for (var i = 0; i < result.cards.length; i++) {
+        console.log("tjos os the thing"+result.cards[i].code);
         handArray.push(result.cards[i].code);
         putCard($selfHand, result.cards[i].code);
       }
@@ -169,8 +170,13 @@ YTK.game = (function() {
     }
   },
   putCard = function($div, cardCode) {
-    var $card = $('<div class="poker-card" data-cid="' + cardCode +'"><img src="' + YTK.cards.getImg(cardCode) + '" class="card-img" alt="'+cardCode+'"></div>');
+    var $card = $('<div class="poker-card cardflip" id="' + cardCode +'" data-cid="' + cardCode +'">');
+    var $cardFront = $('<div class="front"> <img src="' + YTK.cards.getImg(cardCode) + '" class="card-img" alt="'+cardCode+'"></div>');
+    var $cardBack = $('<div class="back"> <img src="https://i.pinimg.com/originals/10/80/a4/1080a4bd1a33cec92019fab5efb3995d.png"></div></div>');
+    //$card = $('</div>')
     $div.append($card);
+    $div.append($cardFront);
+    $div.append($cardBack);
   },
   updateDBDeck = function() {
     YTK.cards.getDeckStat(deckObj.id, function(result) {
