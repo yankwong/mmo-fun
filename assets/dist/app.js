@@ -130,7 +130,6 @@ YTK.game = (function() {
   seats = [], // a 1:1 matching of seat-ID : player-ID
   stateObj = {  // keep track of various state of the program
     needPreGameInit   : true,   // never reset, used in round 0
-    communityDrawFree : true,   // reset
     seesModal         : false,  //set to true when #optionModal displays
     preFlopBetsMade   : false,  // set to true when all bets are in prior to flop
     firstRoundBetsMade: false, // set to true when bets are made in the first round following the flop
@@ -149,11 +148,6 @@ YTK.game = (function() {
   cardAPIFree = true, 
   connectedPlayers = [],
   database = firebase.database(),
-  getLarger = function (numA, numB) {
-    numA = parseInt(numA);
-    numB = parseInt(numB);
-    return numA >= numB ? numA : numB;
-  },
   getNewMinBet = function(recentBet) {
     return recentBet - minBetHolder;
   },
@@ -170,8 +164,11 @@ YTK.game = (function() {
     return node.hasOwnProperty('host');
   },
   betHasBeenMade = function(node) { // did this player make a bet?
-    console.log('%cBet Detected', 'font-weight: bold; color: green');
-    return node.hasOwnProperty('recentBet')
+    var retVal = node.hasOwnProperty('recentBet');
+    if (retVal) {
+      console.log('%cBet Detected', 'font-weight: bold; color: green', node);  
+    }
+    return retVal;
   },
   updateDeckObj = function(obj) {
     deckObj.id        = obj.id;
@@ -646,7 +643,6 @@ YTK.game = (function() {
   resetStateObj = function() {
     stateObj = {
       needPreGameInit   : true,   // never reset, used in round 0
-      communityDrawFree : true,   // reset
       seesModal         : false,  //set to true when #optionModal displays
       preFlopBetsMade   : false,  // set to true when all bets are in prior to flop
       firstRoundBetsMade: false, // set to true when bets are made in the first round following the flop
@@ -814,6 +810,8 @@ console.log('%cHandle Flop Called', 'font-weight: bold; color: blue;');
     if (playerObj.money >= bet && bet >= MIN_BET) {
       count = playerObj.money - bet;
       playerObj.money = count;
+
+      console.log('%cPlayer '+ playerObj.id + ' Making a bet ($' + bet+')','font-weight: bold; color: red;');
 
       YTK.db.dbUpdate(playerObj.id, {money: count, bet: playerObj.bet + bet}, function() {
         YTK.db.dbUpdate('game', {recentBet : bet});  
