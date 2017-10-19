@@ -26,13 +26,8 @@ YTK.game = (function() {
   seats = [], // a 1:1 matching of seat-ID : player-ID
   stateObj = {  // keep track of various state of the program
     needPreGameInit   : true,   // never reset, used in round 0
-    canPutFakeCard    : true,   // never reset
     communityDrawFree : true,   // reset
-    canAssignSeat     : true,   // reset
-    needPlayersStats  : true,   // never reset
     seesModal         : false,  //set to true when #optionModal displays
-    givenAnte         : false,  // set to true when player makes ante for round
-    allDecisionsSatisfied: false,  // to be used to justify the instance of the subsequent round
     preFlopBetsMade   : false,  // set to true when all bets are in prior to flop
     firstRoundBetsMade: false, // set to true when bets are made in the first round following the flop
     canProcessModal   : true,  // set to false when we started initModal to avoid init the same modal more than once
@@ -256,29 +251,28 @@ YTK.game = (function() {
     }
     else {
 
-      // ROUND 0: player draw two cards
+      // ROUND 0
       if (dbGameRound === 0) {
         console.log('%c--- ROUND '+dbGameRound+' ---', 'font-weight: bold; color: gold');
 
+        // Pre-Game Phrase (Once)
         if (stateObj.needPreGameInit && deckObj.id !== '') {
-          stateObj.needPreGameInit = false;
 
+          stateObj.needPreGameInit = false;
           hideDiv($('.page-loader'));
 
-          if (stateObj.canAssignSeat && seats.length === 0) {
+          // if (stateObj.canAssignSeat && seats.length === 0) {
+          if (seats.length === 0) {
             assignSeats();
           }
 
           // update all players stat (except player 0 for now)
-          if (stateObj.needPlayersStats) {
+          for (var i=1; i<seats.length; i++) {
+            var player = connectedPlayers[seats[i]];
+            putPlayerStat(player);
+          }  
 
-            stateObj.needPlayersStats = false;
-            for (var i=1; i<seats.length; i++) {
-              var player = connectedPlayers[seats[i]];
-              putPlayerStat(player);
-            }  
-          }
-
+          // deal the two cards which each user will see face up
           if (deckObj.id !== '' && cardAPIFree) {
             cardAPIFree = false;
             console.log('> drawing 2 cards...', playerObj);
@@ -288,33 +282,23 @@ YTK.game = (function() {
           }
 
           // put two fake cards on table
-          if (stateObj.canPutFakeCard) {
-            stateObj.canPutFakeCard = false;
-            for (var i=1; i < connectedPlayers.length; i++) {
-              putFakeCards($('.seat.player-' + i), 2);
-            }  
-          }
+          for (var i=1; i < connectedPlayers.length; i++) {
+            putFakeCards($('.seat.player-' + i), 2);
+          }  
         }
 
         
-        
-        // deal the two cards which each user will see face up
-        if (!haveHand(playerObj)) {
-          console.log('no hand yo!!');
-        }
-        // FOR THE BETS BEFORE THE COMMUNITY CARD FLOP 
-        else if (!stateObj.preFlopBetsMade) {
-          
-          
+        // Bidding Phrase (MULTIPLE)
+        if (haveHand(playerObj) && !stateObj.preFlopBetsMade) {
 
           // turnCount start at 0, player 0 will always start first
-          if (isMyTurn() && !stateObj.seesModal && playerObj.id === 0) { /// !!!!!!!!!!!!!!!!! ADDED THE THIRD CONDITION BECAUSE OF MULTIPLE FUNCTION CALLS OF INITOPTIONMODAL FOR PLAYERS WITH ID > 0
+          if (isMyTurn() && !stateObj.seesModal && playerObj.id === 0) { 
             stateObj.seesModal = true;
             initOptionModal(gameNode, displayOptionModal);
           }
           // when someone (including urself) makes a bet
           else if (betHasBeenMade(gameNode)) {
-            minBetHolder = getNewMinBet(gameNode.recentBet); //// @@@@@@@@@@@@@@ PART OF FIX FOR RAISES/CALLS and below for total pot
+            minBetHolder = getNewMinBet(gameNode.recentBet); 
             totalPotHolder = getNewTotalPot(gameNode.recentBet); 
             updateTurnCount();
             hideOptionModal();
@@ -331,7 +315,7 @@ YTK.game = (function() {
           }
         }
         // Draw community cards, start with player id 0
-        else if (stateObj.preFlopBetsMade) {
+        else if (haveHand(playerObj) && stateObj.preFlopBetsMade) {
           // reset minBetHolder
           minBetHolder = 0;
           // reset turnCount before the start of next turn
@@ -575,13 +559,8 @@ YTK.game = (function() {
   resetStateObj = function() {
     stateObj = {
       needPreGameInit   : true,   // never reset, used in round 0
-      canPutFakeCard    : true,   // never reset
       communityDrawFree : true,   // reset
-      canAssignSeat     : true,   // reset
-      needPlayersStats  : true,   // never reset
       seesModal         : false,  //set to true when #optionModal displays
-      givenAnte         : false,  // set to true when player makes ante for round
-      allDecisionsSatisfied: false,  // to be used to justify the instance of the subsequent round
       preFlopBetsMade   : false,  // set to true when all bets are in prior to flop
       firstRoundBetsMade: false, // set to true when bets are made in the first round following the flop
       canProcessModal   : true,  // set to false when we started initModal to avoid init the same modal more than once
