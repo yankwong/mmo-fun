@@ -146,7 +146,6 @@ YTK.game = (function() {
   minBetHolder = 0, // for when min bet is raised through big enough bets in the round
   totalPotHolder = 0, // for updating the total pot to set in modal stats display
   turnCount = 0, //to know whose turn it is after the first turn of the round
-  // playersLeftInGame = 0, // to count how many players still retain their hand as game progresses   
   cardAPIFree = true, 
   connectedPlayers = [],
   database = firebase.database(),
@@ -420,11 +419,9 @@ YTK.game = (function() {
         }
         // Draw community cards, start with player id 0
         else if (haveHand(playerObj) && stateObj.preFlopBetsMade) {
-          // reset minBetHolder
-          minBetHolder = 0;
-          // reset turnCount before the start of next turn
-          turnCount = 0;
           
+          minBetHolder = 0;   // reset minBetHolder
+          turnCount = 0;      // reset turnCount before the start of next turn
 
           // HOST: draw commuinty card 
           if (isHost() && cardAPIFree) {
@@ -446,55 +443,48 @@ YTK.game = (function() {
       else if (dbGameRound === 1) {
         console.log('%c--- ROUND '+dbGameRound+' ---', 'font-weight: bold; color: gold');
 
+        // Draw Phrase (ONCE)
         if (isHost()) {
-          if (!communityReady(dbGameRound) && !stateObj.r1DeckUpdate) {
+          if (!stateObj.r1DeckUpdate) {
             stateObj.r1DeckUpdate = true;
             updateDBDeck(); //update deck data in firebase, no drawing 
           }
         }
         else {
-          if (!communityShownOnRound(dbGameRound) && stateObj.communityDrawFree) {
-
-            stateObj.communityDrawFree = false;
-       
-            if (gameNode.hasOwnProperty('communityHand')) {
+          if (!stateObj.r1DeckUpdate) {
+            if (!communityShownOnRound(dbGameRound) && gameNode.hasOwnProperty('communityHand')) {
               communityDraw(gameNode['communityHand']);
-              playerObj.communityShown = dbGameRound;
-
+              
               YTK.db.dbUpdate(playerObj.id, {communityShown: dbGameRound, bet : 0});
-
-              // reset turnCount before the start of next turn
-              turnCount = 0;
             }
-            stateObj.communityDrawFree = true;
+            if (communityShownOnRound(dbGameRound)) {
+              stateObj.r1DeckUpdate = true;
+            }
           }
         }
 
-        if (communityReady(dbGameRound)) {
+        // Bidding Phrase (MULTIPLE)
+        if (stateObj.r1DeckUpdate && communityReady(dbGameRound)) {
 
           cardAPIFree = true; // done with cardAPI, reset state
 
-          // logics here is for all the betting before we are ready
-          // to give out one more community card
           if (!stateObj.preFlopBetsMade) {
             if (isMyTurn() && !stateObj.seesModal) {
-              console.log('asl;dghiewoighweoighweoihgwe')
               stateObj.seesModal = true;
               initOptionModal(gameNode, displayOptionModal);
             }
-            // when someone (including urself) makes a bet
+
+            // someone made a bet
             else if (betHasBeenMade(gameNode)) {
-              console.log('A BET HAS BEEN MADE')
-              minBetHolder = getNewMinBet(gameNode.recentBet); //// @@@@@@@@@@@@@@ PART OF FIX FOR RAISES/CALLS and below for total pot
+              minBetHolder = getNewMinBet(gameNode.recentBet);
               totalPotHolder = getNewTotalPot(gameNode.recentBet); 
               updateTurnCount();
               hideOptionModal();
               stateObj.canProcessModal = true;
               stateObj.seesModal = false;
-              console.log(isMyTurn(), turnCount)
+
               // show your modal if it's your turn
               if (isMyTurn() && stateObj.canProcessModal) {
-                console.log('ASDFDSFASDGHWAEGOIWEHGEOWIGH')
                 stateObj.canProcessModal = false;
                 database.ref('/game/recentBet').remove().then(function() {
                   initOptionModal(gameNode, displayOptionModal);  
@@ -504,9 +494,8 @@ YTK.game = (function() {
           }
           // ready to increament round
           else if (stateObj.preFlopBetsMade) {
-            playerObj.communityShown = false;
+            
             minBetHolder = 0;
-            // reset turnCount before the start of next turn
             turnCount = 0;
 
             // reset communityShown for everybody
@@ -521,30 +510,42 @@ YTK.game = (function() {
         console.log('%c--- ROUND '+dbGameRound+' ---', 'font-weight: bold; color: gold');
         
         if (isHost()) {
-          if (!communityReady(dbGameRound) && !stateObj.r2DeckUpdate) {
+          if (!stateObj.r2DeckUpdate) {
             stateObj.r2DeckUpdate = true;
             updateDBDeck(); //update deck data in firebase, no drawing 
           }
         }
         else {
-          if (!communityShownOnRound(dbGameRound) && stateObj.communityDrawFree) {
 
-            stateObj.communityDrawFree = false;
-       
-            if (gameNode.hasOwnProperty('communityHand')) {
+          if (!stateObj.r2DeckUpdate) {
+            if (!communityShownOnRound(dbGameRound) && gameNode.hasOwnProperty('communityHand')) {
               communityDraw(gameNode['communityHand']);
-              playerObj.communityShown = dbGameRound;
-
+              
               YTK.db.dbUpdate(playerObj.id, {communityShown: dbGameRound, bet : 0});
-
-              // reset turnCount before the start of next turn
-              turnCount = 0;
             }
-            stateObj.communityDrawFree = true;
+            if (communityShownOnRound(dbGameRound)) {
+              stateObj.r2DeckUpdate = true;
+            }
           }
-        }
 
-        if (communityReady(dbGameRound)) {
+          // if (!communityShownOnRound(dbGameRound) && stateObj.communityDrawFree) {
+
+          //   stateObj.communityDrawFree = false;
+       
+          //   if (gameNode.hasOwnProperty('communityHand')) {
+          //     communityDraw(gameNode['communityHand']);
+          //     playerObj.communityShown = dbGameRound;
+
+          //     YTK.db.dbUpdate(playerObj.id, {communityShown: dbGameRound, bet : 0});
+
+          //     // reset turnCount before the start of next turn
+          //     // turnCount = 0;
+          //   }
+          //   stateObj.communityDrawFree = true;
+          // }
+        } 
+
+        if (stateObj.r2DeckUpdate && communityReady(dbGameRound)) {
           cardAPIFree = true;
           // logics here is for all the betting before we are ready
           // to give out one more community card
@@ -574,7 +575,7 @@ YTK.game = (function() {
           }
           // ready to increament round
           else if (stateObj.preFlopBetsMade) {
-            playerObj.communityShown = false;
+            // playerObj.communityShown = false;
             minBetHolder = 0;
 
             if (isHost()) {
