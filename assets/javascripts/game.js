@@ -260,7 +260,6 @@ YTK.game = (function() {
           stateObj.needPreGameInit = false;
           hideDiv($('.page-loader'));
 
-          // if (stateObj.canAssignSeat && seats.length === 0) {
           if (seats.length === 0) {
             assignSeats();
           }
@@ -313,7 +312,7 @@ YTK.game = (function() {
             }
           }
         }
-        // Draw community cards, start with player id 0
+        // Prep Phrase (Host: ONCE, Other: 1+)
         else if (haveHand(playerObj) && stateObj.preFlopBetsMade) {
           
           minBetHolder = 0;   // reset minBetHolder
@@ -327,8 +326,7 @@ YTK.game = (function() {
 
               // go to round 1
               YTK.db.dbUpdate('game', {communityHand : result, howManySeeGameStats : 0, round: 1, preFlopBetsMade: false}, function() {
-                // reset database "preFlopBetsMade"
-                stateObj.preFlopBetsMade = false;
+                stateObj.preFlopBetsMade = false;  // reset database "preFlopBetsMade"
                 YTK.db.dbUpdate(playerObj.id, {communityShown: 1, bet : 0});
               });
             });
@@ -388,7 +386,7 @@ YTK.game = (function() {
               }
             }
           }
-          // ready to increament round
+          // Prep Phrase (Host: ONCE, Other: 1+)
           else if (stateObj.preFlopBetsMade) {
             
             minBetHolder = 0;
@@ -405,6 +403,7 @@ YTK.game = (function() {
       else if (dbGameRound === 2) {
         console.log('%c--- ROUND '+dbGameRound+' ---', 'font-weight: bold; color: gold');
         
+        // Draw Phrase (ONCE)
         if (isHost()) {
           if (!stateObj.r2DeckUpdate) {
             stateObj.r2DeckUpdate = true;
@@ -412,7 +411,6 @@ YTK.game = (function() {
           }
         }
         else {
-
           if (!stateObj.r2DeckUpdate) {
             if (!communityShownOnRound(dbGameRound) && gameNode.hasOwnProperty('communityHand')) {
               communityDraw(gameNode['communityHand']);
@@ -423,37 +421,21 @@ YTK.game = (function() {
               stateObj.r2DeckUpdate = true;
             }
           }
-
-          // if (!communityShownOnRound(dbGameRound) && stateObj.communityDrawFree) {
-
-          //   stateObj.communityDrawFree = false;
-       
-          //   if (gameNode.hasOwnProperty('communityHand')) {
-          //     communityDraw(gameNode['communityHand']);
-          //     playerObj.communityShown = dbGameRound;
-
-          //     YTK.db.dbUpdate(playerObj.id, {communityShown: dbGameRound, bet : 0});
-
-          //     // reset turnCount before the start of next turn
-          //     // turnCount = 0;
-          //   }
-          //   stateObj.communityDrawFree = true;
-          // }
         } 
 
+        // Bidding Phrase (MULTIPLE)
         if (stateObj.r2DeckUpdate && communityReady(dbGameRound)) {
           cardAPIFree = true;
-          // logics here is for all the betting before we are ready
-          // to give out one more community card
+          
           if (!stateObj.preFlopBetsMade) {
             
             if (isMyTurn() && !stateObj.seesModal) {
               stateObj.seesModal = true;
               initOptionModal(gameNode, displayOptionModal);
             }
-            // when someone (including urself) makes a bet
+            // someone made a bid
             else if (betHasBeenMade(gameNode)) {
-              minBetHolder = getNewMinBet(gameNode.recentBet); //// @@@@@@@@@@@@@@ PART OF FIX FOR RAISES/CALLS and below for total pot
+              minBetHolder = getNewMinBet(gameNode.recentBet);
               totalPotHolder = getNewTotalPot(gameNode.recentBet);               
               updateTurnCount();
               hideOptionModal();
@@ -471,7 +453,7 @@ YTK.game = (function() {
           }
           // ready to increament round
           else if (stateObj.preFlopBetsMade) {
-            // playerObj.communityShown = false;
+            turnCount = 0;
             minBetHolder = 0;
 
             if (isHost()) {
@@ -484,29 +466,29 @@ YTK.game = (function() {
       // ROUND III, END GAME!!!
       else if (dbGameRound === 3) {
         console.log('%c--- END GAME ---', 'font-weight: bold; color: gold');
-        
+
+        // Draw Phrase (ONCE)
         if (isHost()) {
-          if (!communityReady(dbGameRound) && !stateObj.r3DeckUpdate) {
+          if (!stateObj.r3DeckUpdate) {
             stateObj.r3DeckUpdate = true;
             updateDBDeck(); //update deck data in firebase, no drawing 
           }
         }
         else {
-          if (!communityShownOnRound(dbGameRound) && stateObj.communityDrawFree) {
-
-            stateObj.communityDrawFree = false;
-       
-            if (gameNode.hasOwnProperty('communityHand')) {
+          if (!stateObj.r3DeckUpdate) {
+            if (!communityShownOnRound(dbGameRound) && gameNode.hasOwnProperty('communityHand')) {
               communityDraw(gameNode['communityHand']);
-              playerObj.communityShown = dbGameRound;
+              
               YTK.db.dbUpdate(playerObj.id, {communityShown: dbGameRound, bet : 0});
             }
-            stateObj.communityDrawFree = true;
+            if (communityShownOnRound(dbGameRound)) {
+              stateObj.r3DeckUpdate = true;
+            }
           }
-        }
+        } 
 
         // natural game end, we need to compare poker rank
-        if (communityReady(dbGameRound)) {
+        if (stateObj.r3DeckUpdate && communityReady(dbGameRound)) {
 
           if (isHost() && !stateObj.processWinner) {
             stateObj.processWinner = true;
@@ -616,13 +598,15 @@ YTK.game = (function() {
 
     if (isHost()) {
       database.ref('/game').child('communityHand').remove().then(function() {
-        YTK.db.dbUpdate('game', {doneTransfer : false}, function() {
-          YTK.db.dbUpdate(playerObj.id, {hand : '', bet : 0, communityShown : -1}, function() {
-            resetStateObj();
-            initGame(playerObj.id);            
+        database.ref('/game').child('recentBet').remove().then(function() {
+          YTK.db.dbUpdate('game', {doneTransfer : false}, function() {
+            YTK.db.dbUpdate(playerObj.id, {hand : '', bet : 0, communityShown : -1}, function() {
+              resetStateObj();
+              initGame(playerObj.id);            
+            });
           });
         });
-      })
+      });
     }
     else {
       showDiv($('.page-loader'));
