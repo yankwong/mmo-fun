@@ -129,6 +129,7 @@ YTK.game = (function() {
   gameDBListener, // used to restart a game
   seats = [], // a 1:1 matching of seat-ID : player-ID
   stateObj = {  // keep track of various state of the program
+    needPreGameInit   : true,   // never reset, used in round 0
     canPutFakeCard    : true,   // never reset
     communityDrawFree : true,   // reset
     canAssignSeat     : true,   // reset
@@ -140,7 +141,6 @@ YTK.game = (function() {
     firstRoundBetsMade: false, // set to true when bets are made in the first round following the flop
     canProcessModal   : true,  // set to false when we started initModal to avoid init the same modal more than once
     initTotalPot      : false, // to see if initial total pot needs to be initialized at the start of the round
-    inGameIDsUpdated  : false, // to see if the gameNode has been initialized/updated with whatever players are in the game
     r1DeckUpdate      : false, // prevent unnecessary update of deck in DB
     r2DeckUpdate      : false,
     r3DeckUpdate      : false,
@@ -151,7 +151,7 @@ YTK.game = (function() {
   minBetHolder = 0, // for when min bet is raised through big enough bets in the round
   totalPotHolder = 0, // for updating the total pot to set in modal stats display
   turnCount = 0, //to know whose turn it is after the first turn of the round
-  playersLeftInGame = 0, // to count how many players still retain their hand as game progresses   
+  // playersLeftInGame = 0, // to count how many players still retain their hand as game progresses   
   cardAPIFree = true, 
   connectedPlayers = [],
   database = firebase.database(),
@@ -328,15 +328,6 @@ YTK.game = (function() {
     $seat.find('.name').html(pObj.name);
     $seat.find('.money').html('<i class="fa fa-usd" aria-hidden="true"></i>' + pObj.money);
   },
-  /// this function will set booleans in a gameNode object which will be used to check whether a player is is still part of the game or has folded or has ran out of money
-  setInGameIDs = function () {
-    var inGameIDs = {};
-    for (var i = 0; i < connectedPlayers.length; i++) {
-      var inGameId = connectedPlayers[i].id;
-      inGameIDs[inGameId] = true;
-    }
-    YTK.db.dbUpdate('/game/inGameIDs', inGameIDs)
-  }
   // main function to determine what to do in each round
   gameRoundListener = function(snapshot) {
     var gameNode = snapshot.val()['game'],
@@ -373,24 +364,25 @@ YTK.game = (function() {
       if (dbGameRound === 0) {
         console.log('%c--- ROUND '+dbGameRound+' ---', 'font-weight: bold; color: gold');
 
-        hideDiv($('.page-loader'));
+        if (stateObj.needPreGameInit && deckObj.id !== '') {
+          stateObj.needPreGameInit = false;
 
-        if (stateObj.canAssignSeat && seats.length === 0) {
-          assignSeats();
-        }
+          hideDiv($('.page-loader'));
 
-        // update all players stat (except player 0 for now)
-        if (stateObj.needPlayersStats) {
+          if (stateObj.canAssignSeat && seats.length === 0) {
+            assignSeats();
+          }
 
-          stateObj.needPlayersStats = false;
-          for (var i=1; i<seats.length; i++) {
-            var player = connectedPlayers[seats[i]];
-            putPlayerStat(player);
-          }  
-        }
-        
-        // deal the two cards which each user will see face up
-        if (!haveHand(playerObj)) {
+          // update all players stat (except player 0 for now)
+          if (stateObj.needPlayersStats) {
+
+            stateObj.needPlayersStats = false;
+            for (var i=1; i<seats.length; i++) {
+              var player = connectedPlayers[seats[i]];
+              putPlayerStat(player);
+            }  
+          }
+
           if (deckObj.id !== '' && cardAPIFree) {
             cardAPIFree = false;
             console.log('> drawing 2 cards...', playerObj);
@@ -398,14 +390,7 @@ YTK.game = (function() {
               initialDraw(result);
             });      
           }
-        }
-        // FOR THE BETS BEFORE THE COMMUNITY CARD FLOP 
-        else if (!stateObj.preFlopBetsMade) {
-          if (!stateObj.inGameIDsUpdated) {
-            stateObj.inGameIDsUpdated = true
-            playersLeftInGame = connectedPlayers.length
-            setInGameIDs()
-          }
+
           // put two fake cards on table
           if (stateObj.canPutFakeCard) {
             stateObj.canPutFakeCard = false;
@@ -413,6 +398,18 @@ YTK.game = (function() {
               putFakeCards($('.seat.player-' + i), 2);
             }  
           }
+        }
+
+        
+        
+        // deal the two cards which each user will see face up
+        if (!haveHand(playerObj)) {
+          console.log('no hand yo!!');
+        }
+        // FOR THE BETS BEFORE THE COMMUNITY CARD FLOP 
+        else if (!stateObj.preFlopBetsMade) {
+          
+          
 
           // turnCount start at 0, player 0 will always start first
           if (isMyTurn() && !stateObj.seesModal && playerObj.id === 0) { /// !!!!!!!!!!!!!!!!! ADDED THE THIRD CONDITION BECAUSE OF MULTIPLE FUNCTION CALLS OF INITOPTIONMODAL FOR PLAYERS WITH ID > 0
@@ -681,6 +678,7 @@ YTK.game = (function() {
   },
   resetStateObj = function() {
     stateObj = {
+      needPreGameInit   : true,   // never reset, used in round 0
       canPutFakeCard    : true,   // never reset
       communityDrawFree : true,   // reset
       canAssignSeat     : true,   // reset
@@ -692,11 +690,12 @@ YTK.game = (function() {
       firstRoundBetsMade: false, // set to true when bets are made in the first round following the flop
       canProcessModal   : true,  // set to false when we started initModal to avoid init the same modal more than once
       initTotalPot      : false, // to see if initial total pot needs to be initialized at the start of the round
-      inGameIDsUpdated  : false, // to see if the gameNode has been initialized/updated with whatever players are in the game
       r1DeckUpdate      : false, // prevent unnecessary update of deck in DB
       r2DeckUpdate      : false,
       r3DeckUpdate      : false,
       r4DeckUpdate      : false,
+      endModalShown     : false,
+      processWinner     : false, // start seeing who won and give them the pot
     };
   },
   transferPotToWinner = function(winnerID){
@@ -735,6 +734,9 @@ YTK.game = (function() {
     cardAPIFree     = true;
     gameWinner      = -1;
     totalPotHolder  = 0;
+    minBetHolder    = 0;
+    connectedPlayers = [];
+
 
     if (isHost()) {
       database.ref('/game').child('communityHand').remove().then(function() {
@@ -900,7 +902,7 @@ console.log('%cHandle Flop Called', 'font-weight: bold; color: blue;');
     else {
       var allEqual = false;
     }
-    return allEqual;
+    return allEqual; 
   },
   grabCommunityCards = function() {
     var $communityArea = $('.community-area', '.game-container'),
@@ -966,7 +968,7 @@ console.log('%cHandle Flop Called', 'font-weight: bold; color: blue;');
     }
 
     // setup "fold" button, only works if there are 2 players left
-    if (playersLeftInGame === 2) {
+    if (playersLeftInGame() === 2) {
       $foldBtn.off().on('click', function() {
         hideOptionModal();
         stateObj.seesModal = false;
@@ -1022,6 +1024,9 @@ console.log('%cHandle Flop Called', 'font-weight: bold; color: blue;');
     }
 
     callback();
+  },
+  playersLeftInGame = function() {
+    return connectedPlayers.length;
   },
   setDeckListener = function(snapshot) {
     var snap = snapshot.val();
