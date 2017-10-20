@@ -216,6 +216,9 @@ YTK.game = (function() {
     $seat.find('.name').html(pObj.name);
     $seat.find('.money').html('<i class="fa fa-usd" aria-hidden="true"></i>' + pObj.money);
   },
+  initRestartGameModal = function() {
+
+  }
   // main function to determine what to do in each round
   gameRoundListener = function(snapshot) {
     var gameNode = snapshot.val()['game'],
@@ -249,7 +252,7 @@ YTK.game = (function() {
     else {
 
       if (stateObj.endOfGame) {
-        
+        initRestartGameModal()
       }
       // ROUND 0
       if (dbGameRound === 0 && !stateObj.endOfGame) {
@@ -560,7 +563,7 @@ YTK.game = (function() {
       r4DeckUpdate      : false,
       endModalShown     : false,
       processWinner     : false, // start seeing who won and give them the pot
-      endOfGame        : true,
+      endOfGame        : false,
     };
   },
   transferPotToWinner = function(winnerID){
