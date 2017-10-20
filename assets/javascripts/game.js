@@ -178,7 +178,7 @@ YTK.game = (function() {
     console.log("this is n " + n)
     var $card = $('<div class="poker-card cardflip" id="UserCard' + n + '" data-cid="' + cardCode +'">');
     var $cardFront = $('<div class="front"> <img src="' + YTK.cards.getImg(cardCode) + '" class="card-img" alt="'+cardCode+'"></div>');
-    var $cardBack = $('<div class="back"> <img src="https://i.pinimg.com/originals/10/80/a4/1080a4bd1a33cec92019fab5efb3995d.png"></div></div>');
+    var $cardBack = $('<div class="back"> <img src="https://i.pinimg.com/originals/10/80/a4/1080a4bd1a33cec92019fab5efb3995d.png" style="height:160px"></div></div>');
     //$card = $('</div>')
     
     $card.append($cardFront);
