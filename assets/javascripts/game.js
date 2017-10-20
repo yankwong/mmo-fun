@@ -37,6 +37,7 @@ YTK.game = (function() {
     r4DeckUpdate      : false,
     endModalShown     : false,
     processWinner     : false, // start seeing who won and give them the pot
+    ultraEndModal     : false,
   },
   restarted = false,
   endOfGame = false,
@@ -238,12 +239,9 @@ YTK.game = (function() {
     $seat.find('.name').html(pObj.name);
     $seat.find('.money').html('<i class="fa fa-usd" aria-hidden="true"></i>' + pObj.money);
   },
-  initRestartGameModal = function() {
-    displayEndModal()    
-  },
-  bothWantRestart = function() {
-
-  },
+  //initRestartGameModal = function() {
+    //displayEndModal()    
+  //},
   // main function to determine what to do in each round
   gameRoundListener = function(snapshot) {
     var gameNode = snapshot.val()['game'],
@@ -277,28 +275,41 @@ YTK.game = (function() {
     else {
 
       if (endOfGame) {
-        if (!restarted) {
-          initRestartGameModal()
+        if (!restarted && !stateObj.ultraEndModal) {
+          stateObj.ultraEndModal = true;
+
+          // setup ultraEndModal
+          $('#restart').off().on('click', function() {
+            
+            $('#finalEndModal').modal('hide');
+            
+            restarted = true;
+            // restartGame(true);
+            database.ref('/game/restarters/'+(playerObj.id+1)).set({restart : true})
+          });
+
+          // before displaying, make sure it's already hidden
+          if (!($("#finalEndModal").data('bs.modal') || {})._isShown ) {
+            console.log('!!!!!!!!');
+            displayEndModal();  
+          }
         }
-        $('#restart').off().on('click', function() {
-          $('#finalEndModal').hide()
-          restarted = true
-          restartGame(true)
-          database.ref('/game/restarters/'+(playerObj.id+1)).set({restart : true})
-        })
+        
         var count = 0
         if (gameNode.hasOwnProperty('restarters')) {
           $.each(gameNode.restarters, function(key, value) {
               count += key
           })
         }
-        if (count === 3) {
+        if (count === 3) { // only work for two players
           endOfGame = false
+          restartGame(true);
         }
       }
       // ROUND 0
       if (dbGameRound === 0 && !endOfGame) {
         console.log('%c--- ROUND '+dbGameRound+' ---'+endOfGame, 'font-weight: bold; color: gold');
+
 
         // Pre-Game Phrase (Once)
         if (stateObj.needPreGameInit && deckObj.id !== '') {
@@ -311,6 +322,7 @@ YTK.game = (function() {
           }
 
           // update all players stat (except player 0 for now)
+          console.log('seat!!!', seats, connectedPlayers, connectedPlayers[1]);
           for (var i=1; i<seats.length; i++) {
             var player = connectedPlayers[seats[i]];
             putPlayerStat(player);
@@ -605,6 +617,7 @@ YTK.game = (function() {
       r4DeckUpdate      : false,
       endModalShown     : false,
       processWinner     : false, // start seeing who won and give them the pot
+      ultraEndModal     : false,
     };
   },
   transferPotToWinner = function(winnerID){
@@ -646,6 +659,12 @@ YTK.game = (function() {
 
     callback();
   },
+  resetPlayerMoney = function() {
+    // true end game: reset local connectedPlayers
+    for (var i = 0; i < connectedPlayers.length; i++) {
+      connectedPlayers[i].money = INIT_MONEY;
+    }
+  }
   restartGame = function(endGame) {
     // clean up community cards from html and database
     $('.community-area', '.game-container').html();
@@ -660,11 +679,8 @@ YTK.game = (function() {
     minBetHolder    = 0;
     connectedPlayers = [];
 
-    //if (endGame) {
-     // endOfGame = false
-    //}
-    var playUpdateObj = endGame == true ? {hand : '', bet : 0, money : INIT_MONEY, communityShown : -1} : {hand : '', bet : 0, communityShown : -1};
-    
+    var playUpdateObj = endGame == true ? {hand : '', bet : 0, money : INIT_MONEY, communityShown : -1} : {hand : '', bet : 0, communityShown : -1};    
+
 
     if (isHost()) {
       database.ref('/game').child('communityHand').remove().then(function() {
@@ -672,7 +688,10 @@ YTK.game = (function() {
           YTK.db.dbUpdate('game', {doneTransfer : false}, function() {
             YTK.db.dbUpdate(playerObj.id, playUpdateObj, function() {
               resetStateObj();
-              initGame(playerObj.id);            
+              if (endGame) {
+                resetPlayerMoney();
+              }
+              initGame(playerObj.id);
             });
           });
         });
@@ -683,6 +702,9 @@ YTK.game = (function() {
       setTimeout(function() {
         YTK.db.dbUpdate(playerObj.id, playUpdateObj, function() {
           resetStateObj();
+          if (endGame) {
+            resetPlayerMoney();
+          }
           initGame(playerObj.id);            
         });
       }, 1000);  
@@ -750,6 +772,8 @@ console.log('%cHandle Flop Called', 'font-weight: bold; color: blue;');
     $potDiv.html(totalPotHolder);
     $callAmt.html(minBetHolder);
 
+console.log('-- settting up option modal!', gameNode, connectedPlayers);
+
     othersMoney = getOthersMoney(othersMoney);
 
     for (var i = 0; i < othersMoney.length; i++) {
@@ -811,7 +835,7 @@ console.log('%cHandle Flop Called', 'font-weight: bold; color: blue;');
   },
   displayEndModal = function() {
     var $endModal = $('#finalEndModal')
-    $endModal.modal('show');
+    $endModal.modal({backdrop: 'static', keyboard: false});
   },
   hideOptionModal = function() {
     var $optModal = $('#optionModal');
