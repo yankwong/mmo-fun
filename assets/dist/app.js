@@ -141,6 +141,7 @@ YTK.game = (function() {
     r4DeckUpdate      : false,
     endModalShown     : false,
     processWinner     : false, // start seeing who won and give them the pot
+    endOfGame         : false, // for when the big game ends
   },
   minBetHolder = 0, // for when min bet is raised through big enough bets in the round
   totalPotHolder = 0, // for updating the total pot to set in modal stats display
@@ -339,7 +340,6 @@ YTK.game = (function() {
           gameWinner = checkWhoWon();
         }  
       }
-      
       initEndGameModal(gameWinner, function() {
         $('#endModal').modal({backdrop: 'static', keyboard: false});
       });
@@ -347,13 +347,14 @@ YTK.game = (function() {
       setTimeout( function() {
         $('#endModal').modal('hide');
         restartGame();  
-      }, ENDGAME_RESULT_TIMER);   
+      }, 1000);   
     }
+    //ENDGAME_RESULT_TIMER
     else {
 
       // ROUND 0
-      if (dbGameRound === 0) {
-        console.log('%c--- ROUND '+dbGameRound+' ---', 'font-weight: bold; color: gold');
+      if (dbGameRound === 0 && !stateObj.endOfGame) {
+        console.log('%c--- ROUND '+dbGameRound+' ---'+stateObj.endOfGame, 'font-weight: bold; color: gold');
 
         // Pre-Game Phrase (Once)
         if (stateObj.needPreGameInit && deckObj.id !== '') {
@@ -454,16 +455,18 @@ YTK.game = (function() {
             }
             if (communityShownOnRound(dbGameRound)) {
               stateObj.r1DeckUpdate = true;
+              grabCommunityCards()
             }
           }
         }
 
-        // Bidding Phrase (MULTIPLE)
+        // Bidding Phase (MULTIPLE)
         if (stateObj.r1DeckUpdate && communityReady(dbGameRound)) {
 
           cardAPIFree = true; // done with cardAPI, reset state
 
           if (!stateObj.preFlopBetsMade) {
+            grabCommunityCards()
             if (isMyTurn() && !stateObj.seesModal) {
               stateObj.seesModal = true;
               initOptionModal(gameNode, displayOptionModal);
@@ -477,12 +480,11 @@ YTK.game = (function() {
               hideOptionModal();
               stateObj.canProcessModal = true;
               stateObj.seesModal = false;
-
               // show your modal if it's your turn
               if (isMyTurn() && stateObj.canProcessModal) {
                 stateObj.canProcessModal = false;
                 database.ref('/game/recentBet').remove().then(function() {
-                  initOptionModal(gameNode, displayOptionModal);  
+                  initOptionModal(gameNode, displayOptionModal); 
                 });
               }
             }
@@ -520,6 +522,7 @@ YTK.game = (function() {
             }
             if (communityShownOnRound(dbGameRound)) {
               stateObj.r2DeckUpdate = true;
+              grabCommunityCards();
             }
           }
         } 
@@ -584,6 +587,7 @@ YTK.game = (function() {
             }
             if (communityShownOnRound(dbGameRound)) {
               stateObj.r3DeckUpdate = true;
+              grabCommunityCards();
             }
           }
         } 
@@ -614,11 +618,11 @@ YTK.game = (function() {
   checkWhoWon = function() {
     var scoreArray = [],
         solvedArray = [],
-        communityCardsArr = getCommunityDraws(),
         totalCards,
         cardSolved;
 
     $.each(connectedPlayers, function(index, player) {
+      communityCardsArr = getCommunityDraws(),
       // combine players hand with community draws
       totalCards = communityCardsArr.concat(JSON.parse(player.hand));
       
@@ -654,6 +658,7 @@ YTK.game = (function() {
       r4DeckUpdate      : false,
       endModalShown     : false,
       processWinner     : false, // start seeing who won and give them the pot
+      endOfGame        : true,
     };
   },
   transferPotToWinner = function(winnerID){
@@ -663,6 +668,20 @@ YTK.game = (function() {
   },
   initEndGameModal = function(winnerID, callback) {
     var endModal = '#endModal';
+    var endAllGame = false;
+
+    for (var i = 0; i < connectedPlayers.length; i++) {
+      if (connectedPlayers[i].money === 0) {
+        endAllGame = true;
+      }
+    }
+
+    if (endAllGame) {
+      stateObj.endOfGame = true;
+      $('.modal-title', endModal).html("GAME OVER!!!!!");
+    } else {
+      $('.modal-title', endModal).html("Round Over!");
+    }
 
     $('.summary .name', endModal).html(connectedPlayers[winnerID].name);
     $.each(connectedPlayers, function(index, player){
@@ -968,16 +987,13 @@ console.log('%cHandle Flop Called', 'font-weight: bold; color: blue;');
 
         stateObj.preFlopBetsMade = true;
         if (gameNode.round !== 2) {
-          console.log(gameNode, 'THE SET TIMEOUT DID RUN!!!!!!!!!!!!!!!!!!!')
           setTimeout(function() { //!!! DEBUG!! hacky (can only update this when gameNode doesn't have a recentBet)
             YTK.db.dbUpdate('game', {preFlopBetsMade: true});  
-          }, 100);
+          }, 120);
         } else {
-          console.log('THE SET TIMEOUT DID NOT RUN!!!!!!!!!!!!!!!!!!')
           YTK.db.dbUpdate('game', {preFlopBetsMade: true});
         }
         
-        //turnCount = 0
       });
     } else {
       $callBtn.off().on('click', function() {
