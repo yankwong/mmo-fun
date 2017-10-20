@@ -7,7 +7,8 @@ module.exports = function(grunt) {
       dist: {
         files: {
           './assets/css/main.css': './assets/scss/main.scss',
-          './assets/css/game.css': './assets/scss/game.scss'
+          './assets/css/game.css': './assets/scss/game.scss',
+          './assets/css/test1.css': './assets/scss/test1.scss'
         }
       }
     },
