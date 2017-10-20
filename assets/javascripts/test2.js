@@ -7,13 +7,19 @@ $("#card6").flip();
 $("#card7").flip();
 $("#card8").flip();
 
-$("UserCard0").flip();
-$("UserCard1").flip();
-$("UserCard2").flip();
+
+
+$(document).on("click", "#UserCard0", function(event){
+  $("#UserCard0").flip();
+});
+$(document).on("click", "#UserCard1", function(event){
+  $("#UserCard1").flip();
+});
+
 
 $('.stack').click(function () {
 
-  $(".card").each(function (e) {
+  $(".cardflip").each(function (e) {
 
     setTimeout(function () {
       $(".card").eq(e).attr("class", "card");
