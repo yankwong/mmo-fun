@@ -248,6 +248,9 @@ YTK.game = (function() {
     //ENDGAME_RESULT_TIMER
     else {
 
+      if (stateObj.endOfGame) {
+        
+      }
       // ROUND 0
       if (dbGameRound === 0 && !stateObj.endOfGame) {
         console.log('%c--- ROUND '+dbGameRound+' ---'+stateObj.endOfGame, 'font-weight: bold; color: gold');
