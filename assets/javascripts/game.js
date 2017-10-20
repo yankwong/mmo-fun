@@ -1,3 +1,5 @@
+console.log("HOLY FUCK");
+
 var YTK = YTK || {} ;
 
 YTK.game = (function() {
