@@ -2,7 +2,7 @@
   "name": "my-project-name",
   "version": "0.1.0",
   "devDependencies": {
-    "grunt": "~0.4.5",
+    "grunt": "^0.4.5",
     "grunt-contrib-concat": "^1.0.1",
     "grunt-contrib-jshint": "~0.10.0",
     "grunt-contrib-nodeunit": "~0.4.1",
@@ -12,5 +12,20 @@
   },
   "dependencies": {
     "pokersolver": "^2.1.2"
-  }
+  },
+  "description": "Explore prototyping with Firebase. \r A simple multiplayer poker game with a basic queue and game turns. <br/>",
+  "main": "Gruntfile.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yankwong/mmo-fun.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yankwong/mmo-fun/issues"
+  },
+  "homepage": "https://github.com/yankwong/mmo-fun#readme"
 }

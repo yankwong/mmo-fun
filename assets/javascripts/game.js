@@ -38,6 +38,7 @@ YTK.game = (function() {
     endModalShown     : false,
     processWinner     : false, // start seeing who won and give them the pot
   },
+  restarted = false,
   endOfGame = false,
   minBetHolder = 0, // for when min bet is raised through big enough bets in the round
   totalPotHolder = 0, // for updating the total pot to set in modal stats display
@@ -102,7 +103,23 @@ YTK.game = (function() {
       // 1. update the user's hand
       for (var i = 0; i < result.cards.length; i++) {
         handArray.push(result.cards[i].code);
-        putCard($selfHand, result.cards[i].code);
+        
+          putCard($selfHand, result.cards[i].code, i);
+          $("#UserCard" + i).flip({
+            trigger: 'manual'
+          });
+         
+          var $userCard = $("#UserCard" + i);
+          $userCard.flip(true);
+          console.log($("#UserCard" + i));
+          flipcard($userCard, i);
+        }
+        function flipcard($card, i){
+          setTimeout(() => {
+            $card.flip(false)
+            console.log($card);
+            console.log('timeout' + i)
+          }, 500 + (500*i));
       }
       playerObj.hand = JSON.stringify(handArray);
 
@@ -161,8 +178,13 @@ YTK.game = (function() {
       return -1;
     }
   },
-  putCard = function($div, cardCode) {
-    var $card = $('<div class="poker-card" data-cid="' + cardCode +'"><img src="' + YTK.cards.getImg(cardCode) + '" class="card-img" alt="'+cardCode+'"></div>');
+  putCard = function($div, cardCode, n) {
+    var $card = $('<div class="poker-card cardflip" id="UserCard' + n + '" data-cid="' + cardCode + '">');
+    var $cardFront = $('<div class="front"> <img src="' + YTK.cards.getImg(cardCode) + '" class="card-img" alt="' + cardCode + '"></div>');
+    var $cardBack = $('<div class="back"> <img src="https://i.pinimg.com/originals/10/80/a4/1080a4bd1a33cec92019fab5efb3995d.png" style="height:160px"></div></div>');
+    //$card = $('</div>')
+    $card.append($cardFront);
+    $card.append($cardBack);
     $div.append($card);
   },
   updateDBDeck = function() {
@@ -217,7 +239,10 @@ YTK.game = (function() {
     $seat.find('.money').html('<i class="fa fa-usd" aria-hidden="true"></i>' + pObj.money);
   },
   initRestartGameModal = function() {
-    displayEndModal()
+    displayEndModal()    
+  },
+  bothWantRestart = function() {
+
   },
   // main function to determine what to do in each round
   gameRoundListener = function(snapshot) {
@@ -252,10 +277,24 @@ YTK.game = (function() {
     else {
 
       if (endOfGame) {
-        $('.endRestartBtn').off().on('click', function() {
+        if (!restarted) {
+          initRestartGameModal()
+        }
+        $('#restart').off().on('click', function() {
+          $('#finalEndModal').hide()
+          restarted = true
           restartGame(true)
+          database.ref('/game/restarters/'+(playerObj.id+1)).set({restart : true})
         })
-        initRestartGameModal()
+        var count = 0
+        if (gameNode.hasOwnProperty('restarters')) {
+          $.each(gameNode.restarters, function(key, value) {
+              count += key
+          })
+        }
+        if (count === 3) {
+          endOfGame = false
+        }
       }
       // ROUND 0
       if (dbGameRound === 0 && !endOfGame) {
@@ -341,7 +380,7 @@ YTK.game = (function() {
         }
       }
       // ROUND 1: first deal of the commuinty deck
-      else if (dbGameRound === 1) {
+      else if (dbGameRound === 1 && !endOfGame) {
         console.log('%c--- ROUND '+dbGameRound+' ---', 'font-weight: bold; color: gold');
 
         // Draw Phrase (ONCE)
@@ -408,7 +447,7 @@ YTK.game = (function() {
         }
       }
       // ROUND II | round 2
-      else if (dbGameRound === 2) {
+      else if (dbGameRound === 2 && !endOfGame) {
         console.log('%c--- ROUND '+dbGameRound+' ---', 'font-weight: bold; color: gold');
         
         // Draw Phrase (ONCE)
@@ -473,7 +512,7 @@ YTK.game = (function() {
       }
 
       // ROUND III, END GAME!!!
-      else if (dbGameRound === 3) {
+      else if (dbGameRound === 3 && !endOfGame) {
         console.log('%c--- END GAME ---', 'font-weight: bold; color: gold');
 
         // Draw Phrase (ONCE)
@@ -621,9 +660,9 @@ YTK.game = (function() {
     minBetHolder    = 0;
     connectedPlayers = [];
 
-    if (endGame) {
-      endOfGame = false
-    }
+    //if (endGame) {
+     // endOfGame = false
+    //}
     var playUpdateObj = endGame == true ? {hand : '', bet : 0, money : INIT_MONEY, communityShown : -1} : {hand : '', bet : 0, communityShown : -1};
     
 
@@ -772,7 +811,7 @@ console.log('%cHandle Flop Called', 'font-weight: bold; color: blue;');
   },
   displayEndModal = function() {
     var $endModal = $('#finalEndModal')
-    $endModal.modal({backdrop: 'static', keyboard: false});
+    $endModal.modal('show');
   },
   hideOptionModal = function() {
     var $optModal = $('#optionModal');
@@ -984,5 +1023,9 @@ console.log('%cHandle Flop Called', 'font-weight: bold; color: blue;');
 })();
 
 $(document).on('gameStarted', function(e, playerID) {
-  YTK.game.start(playerID);
+
+
+    YTK.game.start(playerID);
+
+ 
 });
