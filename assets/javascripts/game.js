@@ -116,7 +116,7 @@ YTK.game = (function() {
         }
         function flipcard($card, i){
           setTimeout(() => {
-            $card.flip(false);
+            $card.flip(false)
           }, 500 + (500*i));
       }
       playerObj.hand = JSON.stringify(handArray);
@@ -187,7 +187,7 @@ YTK.game = (function() {
   },
   updateDBDeck = function() {
     YTK.cards.getDeckStat(deckObj.id, function(result) {
-      console.log('%cUpdating db deck', 'font-weight:bold; color: brown;', result);
+      console.log('updating db deck', result);
       YTK.db.dbSet('deck', {
         id        : result.deck_id, 
         shuffled  : result.shuffled,
@@ -198,8 +198,6 @@ YTK.game = (function() {
   communityDraw = function(result) {
     var communityArray = [],
         $communityCards = $('.community-area')
-
-    console.log('%cPutting community cards', 'font-weight:bold; color: blue;');
 
     for (var i = 0; i < result.cards.length; i++) {
       communityArray.push(result.cards[i].code);
@@ -216,6 +214,7 @@ YTK.game = (function() {
     }
   },
   assignSeats = function() {
+    console.log('%cAssign seats', 'font-weight:bold; color: green;');
     stateObj.canAssignSeat = false;
     if (seats.length === 0 && connectedPlayers.length > 1) {
       seats.push(playerObj.id);
@@ -238,6 +237,9 @@ YTK.game = (function() {
     $seat.find('.name').html(pObj.name);
     $seat.find('.money').html('<i class="fa fa-usd" aria-hidden="true"></i>' + pObj.money);
   },
+  //initRestartGameModal = function() {
+    //displayEndModal()    
+  //},
   // main function to determine what to do in each round
   gameRoundListener = function(snapshot) {
     var gameNode = snapshot.val()['game'],
@@ -265,9 +267,9 @@ YTK.game = (function() {
       setTimeout( function() {
         $('#endModal').modal('hide');
         restartGame(false);
-      }, ENDGAME_RESULT_TIMER);   
+      }, 1000);   
     }
-    
+    //ENDGAME_RESULT_TIMER
     else {
 
       if (endOfGame) {
@@ -278,12 +280,15 @@ YTK.game = (function() {
           $('#restart').off().on('click', function() {
             
             $('#finalEndModal').modal('hide');
+            
             restarted = true;
+            // restartGame(true);
             database.ref('/game/restarters/'+(playerObj.id+1)).set({restart : true})
           });
 
           // before displaying, make sure it's already hidden
           if (!($("#finalEndModal").data('bs.modal') || {})._isShown ) {
+            console.log('!!!!!!!!');
             displayEndModal();  
           }
         }
@@ -299,8 +304,6 @@ YTK.game = (function() {
           restartGame(true);
         }
       }
-
-
       // ROUND 0
       if (dbGameRound === 0 && !endOfGame) {
         console.log('%c--- ROUND '+dbGameRound+' ---', 'font-weight: bold; color: gold');
@@ -317,7 +320,6 @@ YTK.game = (function() {
           }
 
           // update all players stat (except player 0 for now)
-          console.log('%cAssign Seats', 'font-weight:bold; color: green;', seats, connectedPlayers, connectedPlayers);
           for (var i=1; i<seats.length; i++) {
             var player = connectedPlayers[seats[i]];
             putPlayerStat(player);
@@ -326,7 +328,7 @@ YTK.game = (function() {
           // deal the two cards which each user will see face up
           if (deckObj.id !== '' && cardAPIFree) {
             cardAPIFree = false;
-            console.log('%cDrawing 2 cards...', 'font-weight:bold; color: blue', playerObj);
+            console.log('%cDrawing 2 cards...', 'font-weight:bold; color: blue;', playerObj);
             YTK.cards.drawCards(deckObj.id, 2, function(result) {
               initialDraw(result);
             });      
@@ -341,7 +343,7 @@ YTK.game = (function() {
         
         // Bidding Phrase (MULTIPLE)
         if (haveHand(playerObj) && !stateObj.preFlopBetsMade) {
-console.log('%cTurn', 'color: red;', turnCount);
+
           // turnCount start at 0, player 0 will always start first
           if (isMyTurn() && !stateObj.seesModal && playerObj.id === 0) { 
             stateObj.seesModal = true;
@@ -355,7 +357,7 @@ console.log('%cTurn', 'color: red;', turnCount);
             hideOptionModal();
             stateObj.canProcessModal = true;
             stateObj.seesModal = false;
-console.log('round 0 doctor', isMyTurn(), turnCount, stateObj.canProcessModal);
+            
             // show your modal if it's your turn
             if (isMyTurn() && stateObj.canProcessModal) {
               stateObj.canProcessModal = false;
@@ -372,11 +374,11 @@ console.log('round 0 doctor', isMyTurn(), turnCount, stateObj.canProcessModal);
           turnCount = 0;      // reset turnCount before the start of next turn
 
           // HOST: draw commuinty card 
-          if (isHost() && cardAPIFree && !gameNode.recentBet) {
+          if (isHost() && cardAPIFree) {
             cardAPIFree = false;
             YTK.cards.drawCards(deckObj.id, 3, function(result) {
               communityDraw(result);
-console.log('about to increament round haha', gameNode);
+
               // go to round 1
               YTK.db.dbUpdate('game', {communityHand : result, howManySeeGameStats : 0, round: 1, preFlopBetsMade: false}, function() {
                 stateObj.preFlopBetsMade = false;  // reset database "preFlopBetsMade"
@@ -704,7 +706,7 @@ console.log('about to increament round haha', gameNode);
           }
           initGame(playerObj.id);            
         });
-      }, ENDGAME_RESULT_TIMER);  
+      }, 1000);  
     }
   },
   communityShownOnRound = function(round) {
@@ -805,9 +807,6 @@ console.log('%cHandle Flop Called', 'font-weight: bold; color: blue;');
       YTK.db.dbUpdate(playerObj.id, {money: count, bet: playerObj.bet + bet}, function() {
         YTK.db.dbUpdate('game', {recentBet : bet});  
       });
-      // YTK.db.dbUpdate('game', {recentBet : bet}, function() {
-      //   YTK.db.dbUpdate(playerObj.id, {money: count, bet: playerObj.bet + bet});
-      // });  
     }
     else if (!(playerObj.money) >= bet && bet >= MIN_BET) {
       console.log('%cNot enough money to make bet', 'font-weight: bold; color: red;');
@@ -945,19 +944,24 @@ console.log('%cHandle Flop Called', 'font-weight: bold; color: blue;');
     // setup "bet" ("raise") button
     $betBtn.off().on('click', function() {
       var bet = Math.floor(parseInt($('.bet-amount').val())) + minBetHolder;
-      playerMakesBet(bet); // update Firebase \player's Node
+      if (Number.isInteger(bet) && bet > 0) {
+        playerMakesBet(bet); // update Firebase \player's Node  
+      }
+      
     });
     $('.bet-amount', '#optionModal').off().on('keyup', function(e) {
       if (e.keyCode == 13) {
         var bet = Math.floor(parseInt($('.bet-amount').val())) + minBetHolder;
-        playerMakesBet(bet); // update Firebase \player's Node
+        if (Number.isInteger(bet) && bet > 0) {
+          playerMakesBet(bet); // update Firebase \player's Node
+        }
       }
     });
     
     // setup the "call" button
     if (turnCount !== 0 && whosTurn() === connectedPlayers.length - 1) {
       $callBtn.off().on('click', function() {
-        // close modal
+                // close modal
         hideOptionModal();
         stateObj.seesModal = false;
         playerMakesBet(minBetHolder);
@@ -967,7 +971,6 @@ console.log('%cHandle Flop Called', 'font-weight: bold; color: blue;');
           setTimeout(function() { //!!! DEBUG!! hacky (can only update this when gameNode doesn't have a recentBet)
             YTK.db.dbUpdate('game', {preFlopBetsMade: true});  
           }, 120);
-          // YTK.db.dbUpdate('game', {preFlopBetsMade: true});  
         } else {
           YTK.db.dbUpdate('game', {preFlopBetsMade: true});
         }
