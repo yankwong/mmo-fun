@@ -1406,7 +1406,11 @@ console.log('%cHandle Flop Called', 'font-weight: bold; color: blue;');
 })();
 
 $(document).on('gameStarted', function(e, playerID) {
-  YTK.game.start(playerID);
+
+
+    YTK.game.start(playerID);
+
+ 
 });
 //TODO: QA login/dc logic
 var YTK = YTK || {};
