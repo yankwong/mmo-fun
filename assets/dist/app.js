@@ -25,7 +25,7 @@ $('.stack').click(function () {
     });
     
     $('.shuffle').click(function () {
-      console.log("shuffling");
+      // console.log("shuffling");
     
       $(".card").each(function (e) {
     
@@ -65,7 +65,6 @@ YTK.cards = (function() {
       url: url,
     })
     .done(function(results) {
-      console.log('card API: ', results);
       callback(results);
     })
     .fail(function() {
@@ -569,14 +568,11 @@ YTK.game = (function() {
          
           var $userCard = $("#UserCard" + i);
           $userCard.flip(true);
-          console.log($("#UserCard" + i));
           flipcard($userCard, i);
         }
         function flipcard($card, i){
           setTimeout(() => {
-            $card.flip(false)
-            console.log($card);
-            console.log('timeout' + i)
+            $card.flip(false);
           }, 500 + (500*i));
       }
       playerObj.hand = JSON.stringify(handArray);
@@ -647,7 +643,7 @@ YTK.game = (function() {
   },
   updateDBDeck = function() {
     YTK.cards.getDeckStat(deckObj.id, function(result) {
-      console.log('updating db deck', result);
+      console.log('%cUpdating db deck', 'font-weight:bold; color: brown;', result);
       YTK.db.dbSet('deck', {
         id        : result.deck_id, 
         shuffled  : result.shuffled,
@@ -658,6 +654,8 @@ YTK.game = (function() {
   communityDraw = function(result) {
     var communityArray = [],
         $communityCards = $('.community-area')
+
+    console.log('%cPutting community cards', 'font-weight:bold; color: blue;');
 
     for (var i = 0; i < result.cards.length; i++) {
       communityArray.push(result.cards[i].code);
@@ -696,9 +694,6 @@ YTK.game = (function() {
     $seat.find('.name').html(pObj.name);
     $seat.find('.money').html('<i class="fa fa-usd" aria-hidden="true"></i>' + pObj.money);
   },
-  //initRestartGameModal = function() {
-    //displayEndModal()    
-  //},
   // main function to determine what to do in each round
   gameRoundListener = function(snapshot) {
     var gameNode = snapshot.val()['game'],
@@ -726,9 +721,9 @@ YTK.game = (function() {
       setTimeout( function() {
         $('#endModal').modal('hide');
         restartGame(false);
-      }, 1000);   
+      }, ENDGAME_RESULT_TIMER);   
     }
-    //ENDGAME_RESULT_TIMER
+    
     else {
 
       if (endOfGame) {
@@ -739,15 +734,12 @@ YTK.game = (function() {
           $('#restart').off().on('click', function() {
             
             $('#finalEndModal').modal('hide');
-            
             restarted = true;
-            // restartGame(true);
             database.ref('/game/restarters/'+(playerObj.id+1)).set({restart : true})
           });
 
           // before displaying, make sure it's already hidden
           if (!($("#finalEndModal").data('bs.modal') || {})._isShown ) {
-            console.log('!!!!!!!!');
             displayEndModal();  
           }
         }
@@ -763,9 +755,11 @@ YTK.game = (function() {
           restartGame(true);
         }
       }
+
+
       // ROUND 0
       if (dbGameRound === 0 && !endOfGame) {
-        console.log('%c--- ROUND '+dbGameRound+' ---'+endOfGame, 'font-weight: bold; color: gold');
+        console.log('%c--- ROUND '+dbGameRound+' ---', 'font-weight: bold; color: gold');
 
 
         // Pre-Game Phrase (Once)
@@ -779,7 +773,7 @@ YTK.game = (function() {
           }
 
           // update all players stat (except player 0 for now)
-          console.log('seat!!!', seats, connectedPlayers, connectedPlayers[1]);
+          console.log('%cAssign Seats', 'font-weight:bold; color: green;', seats, connectedPlayers, connectedPlayers);
           for (var i=1; i<seats.length; i++) {
             var player = connectedPlayers[seats[i]];
             putPlayerStat(player);
@@ -788,7 +782,7 @@ YTK.game = (function() {
           // deal the two cards which each user will see face up
           if (deckObj.id !== '' && cardAPIFree) {
             cardAPIFree = false;
-            console.log('> drawing 2 cards...', playerObj);
+            console.log('%cDrawing 2 cards...', 'font-weight:bold; color: blue', playerObj);
             YTK.cards.drawCards(deckObj.id, 2, function(result) {
               initialDraw(result);
             });      
@@ -803,7 +797,7 @@ YTK.game = (function() {
         
         // Bidding Phrase (MULTIPLE)
         if (haveHand(playerObj) && !stateObj.preFlopBetsMade) {
-
+console.log('%cTurn', 'color: red;', turnCount);
           // turnCount start at 0, player 0 will always start first
           if (isMyTurn() && !stateObj.seesModal && playerObj.id === 0) { 
             stateObj.seesModal = true;
@@ -817,7 +811,7 @@ YTK.game = (function() {
             hideOptionModal();
             stateObj.canProcessModal = true;
             stateObj.seesModal = false;
-            
+console.log('round 0 doctor', isMyTurn(), turnCount, stateObj.canProcessModal);
             // show your modal if it's your turn
             if (isMyTurn() && stateObj.canProcessModal) {
               stateObj.canProcessModal = false;
@@ -834,11 +828,11 @@ YTK.game = (function() {
           turnCount = 0;      // reset turnCount before the start of next turn
 
           // HOST: draw commuinty card 
-          if (isHost() && cardAPIFree) {
+          if (isHost() && cardAPIFree && !gameNode.recentBet) {
             cardAPIFree = false;
             YTK.cards.drawCards(deckObj.id, 3, function(result) {
               communityDraw(result);
-
+console.log('about to increament round haha', gameNode);
               // go to round 1
               YTK.db.dbUpdate('game', {communityHand : result, howManySeeGameStats : 0, round: 1, preFlopBetsMade: false}, function() {
                 stateObj.preFlopBetsMade = false;  // reset database "preFlopBetsMade"
@@ -1166,7 +1160,7 @@ YTK.game = (function() {
           }
           initGame(playerObj.id);            
         });
-      }, 1000);  
+      }, ENDGAME_RESULT_TIMER);  
     }
   },
   communityShownOnRound = function(round) {
@@ -1231,8 +1225,6 @@ console.log('%cHandle Flop Called', 'font-weight: bold; color: blue;');
     $potDiv.html(totalPotHolder);
     $callAmt.html(minBetHolder);
 
-console.log('-- settting up option modal!', gameNode, connectedPlayers);
-
     othersMoney = getOthersMoney(othersMoney);
 
     for (var i = 0; i < othersMoney.length; i++) {
@@ -1269,6 +1261,9 @@ console.log('-- settting up option modal!', gameNode, connectedPlayers);
       YTK.db.dbUpdate(playerObj.id, {money: count, bet: playerObj.bet + bet}, function() {
         YTK.db.dbUpdate('game', {recentBet : bet});  
       });
+      // YTK.db.dbUpdate('game', {recentBet : bet}, function() {
+      //   YTK.db.dbUpdate(playerObj.id, {money: count, bet: playerObj.bet + bet});
+      // });  
     }
     else if (!(playerObj.money) >= bet && bet >= MIN_BET) {
       console.log('%cNot enough money to make bet', 'font-weight: bold; color: red;');
@@ -1418,7 +1413,7 @@ console.log('-- settting up option modal!', gameNode, connectedPlayers);
     // setup the "call" button
     if (turnCount !== 0 && whosTurn() === connectedPlayers.length - 1) {
       $callBtn.off().on('click', function() {
-                // close modal
+        // close modal
         hideOptionModal();
         stateObj.seesModal = false;
         playerMakesBet(minBetHolder);
@@ -1428,6 +1423,7 @@ console.log('-- settting up option modal!', gameNode, connectedPlayers);
           setTimeout(function() { //!!! DEBUG!! hacky (can only update this when gameNode doesn't have a recentBet)
             YTK.db.dbUpdate('game', {preFlopBetsMade: true});  
           }, 120);
+          // YTK.db.dbUpdate('game', {preFlopBetsMade: true});  
         } else {
           YTK.db.dbUpdate('game', {preFlopBetsMade: true});
         }
@@ -1456,7 +1452,7 @@ console.log('-- settting up option modal!', gameNode, connectedPlayers);
   },
   setDBListener = function() { // listen to all firebase changes
     gameDBListener = database.ref().on('value', function(snapshot) {
-      console.log('(DB-Value, game)', snapshot.val());
+      console.log('%c(DB-Value, game)', 'color: silver;', snapshot.val());
 
       // on DB deck change: update local deck
       setDeckListener(snapshot);

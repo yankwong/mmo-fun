@@ -12,7 +12,6 @@ YTK.cards = (function() {
       url: url,
     })
     .done(function(results) {
-      console.log('card API: ', results);
       callback(results);
     })
     .fail(function() {

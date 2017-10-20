@@ -25,7 +25,7 @@ $('.stack').click(function () {
     });
     
     $('.shuffle').click(function () {
-      console.log("shuffling");
+      // console.log("shuffling");
     
       $(".card").each(function (e) {
     
