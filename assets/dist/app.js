@@ -636,7 +636,6 @@ YTK.game = (function() {
     var $card = $('<div class="poker-card cardflip" id="UserCard' + n + '" data-cid="' + cardCode + '">');
     var $cardFront = $('<div class="front"> <img src="' + YTK.cards.getImg(cardCode) + '" class="card-img" alt="' + cardCode + '"></div>');
     var $cardBack = $('<div class="back"> <img src="https://i.pinimg.com/originals/10/80/a4/1080a4bd1a33cec92019fab5efb3995d.png" style="height:160px"></div></div>');
-    //$card = $('</div>')
     $card.append($cardFront);
     $card.append($cardBack);
     $div.append($card);
@@ -693,9 +692,7 @@ YTK.game = (function() {
     $seat.find('.name').html(pObj.name);
     $seat.find('.money').html('<i class="fa fa-usd" aria-hidden="true"></i>' + pObj.money);
   },
-  //initRestartGameModal = function() {
-    //displayEndModal()    
-  //},
+  
   // main function to determine what to do in each round
   gameRoundListener = function(snapshot) {
     var gameNode = snapshot.val()['game'],
@@ -723,9 +720,9 @@ YTK.game = (function() {
       setTimeout( function() {
         $('#endModal').modal('hide');
         restartGame(false);
-      }, 1000);   
+      }, ENDGAME_RESULT_TIMER);   
     }
-    //ENDGAME_RESULT_TIMER
+
     else {
 
       if (endOfGame) {
@@ -801,7 +798,7 @@ YTK.game = (function() {
         if (haveHand(playerObj) && !stateObj.preFlopBetsMade) {
 
           // turnCount start at 0, player 0 will always start first
-          if (isMyTurn() && !stateObj.seesModal && playerObj.id === 0) { 
+          if (isMyTurn() && !stateObj.seesModal) { 
             stateObj.seesModal = true;
             initOptionModal(gameNode, displayOptionModal);
           }
@@ -1162,7 +1159,7 @@ YTK.game = (function() {
           }
           initGame(playerObj.id);            
         });
-      }, 1000);  
+      }, ENDGAME_RESULT_TIMER);  
     }
   },
   communityShownOnRound = function(round) {
