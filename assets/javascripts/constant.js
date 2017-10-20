@@ -1,4 +1,4 @@
-var MAX_PLAYERS = 5,
+var MAX_PLAYERS = 2,
     INIT_MONEY  = 100,
     COUNTDOWN_TIMER = 1,
     TOTAL_DECK = 1,
