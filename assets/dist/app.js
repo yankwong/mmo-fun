@@ -1146,7 +1146,9 @@ YTK.game = (function() {
             YTK.db.dbUpdate(playerObj.id, playUpdateObj, function() {
               resetStateObj();
               if (endGame) {
-                resetPlayerMoney();
+                // doestn' work because whiel the 2nd player is updating 
+                // their DB player node the local connectedPlayer get updated
+                resetPlayerMoney(); 
               }
               initGame(playerObj.id);
             });
