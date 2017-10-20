@@ -7,11 +7,9 @@ $("#card6").flip();
 $("#card7").flip();
 $("#card8").flip();
 
-
-$('.cardflip').click(function () {
-  console.log("ehjfaslfjaklosdf");
-  $('.cardflip').flip();
-});
+$("UserCard0").flip();
+$("UserCard1").flip();
+$("UserCard2").flip();
 
 $('.stack').click(function () {
 
