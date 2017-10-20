@@ -625,6 +625,9 @@ YTK.game = (function() {
       communityCardsArr = getCommunityDraws(),
       // combine players hand with community draws
       totalCards = communityCardsArr.concat(JSON.parse(player.hand));
+      totalCards = totalCards.map(function(x) {
+        return x.replace('0', '10');
+      });
       
       if (totalCards.length > 0) {
         cardSolved = Hand.solve(totalCards);
