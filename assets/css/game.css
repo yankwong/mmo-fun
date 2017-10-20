@@ -90,6 +90,8 @@
     text-align: center; }
     .game-container #optionModal .first-row .community-cards .poker-card {
       width: 70px; }
+      .game-container #optionModal .first-row .community-cards .poker-card .back {
+        display: none; }
   .game-container #optionModal .first-row .btn-bet {
     font-size: 30px; }
   .game-container #optionModal .first-row .user-money {

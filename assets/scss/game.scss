@@ -135,6 +135,9 @@
         
         .poker-card {
           width: 70px;
+          .back {
+            display: none;
+          }
         }
       }
       .btn-bet {
