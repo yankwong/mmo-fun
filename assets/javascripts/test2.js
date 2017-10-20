@@ -9,14 +9,6 @@ $("#card8").flip();
 
 
 
-$(document).on("click", "#UserCard0", function(event){
-  $("#UserCard0").flip();
-});
-$(document).on("click", "#UserCard1", function(event){
-  $("#UserCard1").flip();
-});
-
-
 $('.stack').click(function () {
 
   $(".cardflip").each(function (e) {

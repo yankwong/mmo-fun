@@ -218,6 +218,15 @@ YTK.game = (function() {
         handArray.push(result.cards[i].code);
         console.log("this is what n is suippose to be" + i);
         putCard($selfHand, result.cards[i].code, i);
+        $("#UserCard" + i).flip({
+          trigger: 'manual'
+        });
+        $("#UserCard" + i).flip(true);
+        setTimeout(function() {
+          console.log("lets see fi this is working");
+          $("#UserCard" + i).flip(false);
+        }, 5000);
+        
       }
       playerObj.hand = JSON.stringify(handArray);
 
@@ -1246,7 +1255,7 @@ $(document).on('gameStarted', function(e, playerID) {
       var perspective = self.element["outer" + (rotateAxis === "rotatex" ? "Height" : "Width")]() * 2;
       var elementCss = {
         'perspective': perspective,
-        'position': 'absolute'
+        'position': 'relative'
       };
       var backElementCss = {
         "transform": rotateAxis + "(" + (self.setting.reverse ? "180deg" : "-180deg") + ")",
@@ -1836,14 +1845,6 @@ $("#card6").flip();
 $("#card7").flip();
 $("#card8").flip();
 
-
-
-$(document).on("click", "#UserCard0", function(event){
-  $("#UserCard0").flip();
-});
-$(document).on("click", "#UserCard1", function(event){
-  $("#UserCard1").flip();
-});
 
 
 $('.stack').click(function () {

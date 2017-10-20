@@ -168,7 +168,7 @@
       var perspective = self.element["outer" + (rotateAxis === "rotatex" ? "Height" : "Width")]() * 2;
       var elementCss = {
         'perspective': perspective,
-        'position': 'absolute'
+        'position': 'relative'
       };
       var backElementCss = {
         "transform": rotateAxis + "(" + (self.setting.reverse ? "180deg" : "-180deg") + ")",

@@ -114,6 +114,15 @@ YTK.game = (function() {
         handArray.push(result.cards[i].code);
         console.log("this is what n is suippose to be" + i);
         putCard($selfHand, result.cards[i].code, i);
+        $("#UserCard" + i).flip({
+          trigger: 'manual'
+        });
+        $("#UserCard" + i).flip(true);
+        setTimeout(function() {
+          console.log("lets see fi this is working");
+          $("#UserCard" + i).flip(false);
+        }, 5000);
+        
       }
       playerObj.hand = JSON.stringify(handArray);
 
