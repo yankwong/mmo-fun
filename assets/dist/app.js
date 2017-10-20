@@ -61,7 +61,7 @@ var MAX_PLAYERS = 5,
     MODAL_COUNTDOWN = 15,
     DEFAULT_ANTE = 5;
     MIN_BET = 0,
-    ENDGAME_RESULT_TIMER = 3000;
+    ENDGAME_RESULT_TIMER = 1000;
 // utility object to interact with FireBase
 var YTK = YTK || {};
 
@@ -141,8 +141,8 @@ YTK.game = (function() {
     r4DeckUpdate      : false,
     endModalShown     : false,
     processWinner     : false, // start seeing who won and give them the pot
-    endOfGame         : false, // for when the big game ends
   },
+  endOfGame = false,
   minBetHolder = 0, // for when min bet is raised through big enough bets in the round
   totalPotHolder = 0, // for updating the total pot to set in modal stats display
   turnCount = 0, //to know whose turn it is after the first turn of the round
@@ -320,6 +320,9 @@ YTK.game = (function() {
     $seat.find('.name').html(pObj.name);
     $seat.find('.money').html('<i class="fa fa-usd" aria-hidden="true"></i>' + pObj.money);
   },
+  initRestartGameModal = function() {
+    displayEndModal()
+  },
   // main function to determine what to do in each round
   gameRoundListener = function(snapshot) {
     var gameNode = snapshot.val()['game'],
@@ -346,15 +349,21 @@ YTK.game = (function() {
 
       setTimeout( function() {
         $('#endModal').modal('hide');
-        restartGame();  
+        restartGame(false);
       }, 1000);   
     }
     //ENDGAME_RESULT_TIMER
     else {
 
+      if (endOfGame) {
+        $('.endRestartBtn').off().on('click', function() {
+          restartGame(true)
+        })
+        initRestartGameModal()
+      }
       // ROUND 0
-      if (dbGameRound === 0 && !stateObj.endOfGame) {
-        console.log('%c--- ROUND '+dbGameRound+' ---'+stateObj.endOfGame, 'font-weight: bold; color: gold');
+      if (dbGameRound === 0 && !endOfGame) {
+        console.log('%c--- ROUND '+dbGameRound+' ---'+endOfGame, 'font-weight: bold; color: gold');
 
         // Pre-Game Phrase (Once)
         if (stateObj.needPreGameInit && deckObj.id !== '') {
@@ -661,7 +670,6 @@ YTK.game = (function() {
       r4DeckUpdate      : false,
       endModalShown     : false,
       processWinner     : false, // start seeing who won and give them the pot
-      endOfGame        : true,
     };
   },
   transferPotToWinner = function(winnerID){
@@ -680,7 +688,7 @@ YTK.game = (function() {
     }
 
     if (endAllGame) {
-      stateObj.endOfGame = true;
+      endOfGame = true;
       $('.modal-title', endModal).html("GAME OVER!!!!!");
     } else {
       $('.modal-title', endModal).html("Round Over!");
@@ -703,7 +711,7 @@ YTK.game = (function() {
 
     callback();
   },
-  restartGame = function() {
+  restartGame = function(endGame) {
     // clean up community cards from html and database
     $('.community-area', '.game-container').html();
     $('.poker-card', '.game-container').remove();
@@ -717,12 +725,17 @@ YTK.game = (function() {
     minBetHolder    = 0;
     connectedPlayers = [];
 
+    if (endGame) {
+      endOfGame = false
+    }
+    var playUpdateObj = endGame == true ? {hand : '', bet : 0, money : INIT_MONEY, communityShown : -1} : {hand : '', bet : 0, communityShown : -1};
+    
 
     if (isHost()) {
       database.ref('/game').child('communityHand').remove().then(function() {
         database.ref('/game').child('recentBet').remove().then(function() {
           YTK.db.dbUpdate('game', {doneTransfer : false}, function() {
-            YTK.db.dbUpdate(playerObj.id, {hand : '', bet : 0, communityShown : -1}, function() {
+            YTK.db.dbUpdate(playerObj.id, playUpdateObj, function() {
               resetStateObj();
               initGame(playerObj.id);            
             });
@@ -733,7 +746,7 @@ YTK.game = (function() {
     else {
       showDiv($('.page-loader'));
       setTimeout(function() {
-        YTK.db.dbUpdate(playerObj.id, {hand : '', bet : 0, communityShown : -1}, function() {
+        YTK.db.dbUpdate(playerObj.id, playUpdateObj, function() {
           resetStateObj();
           initGame(playerObj.id);            
         });
@@ -860,6 +873,10 @@ console.log('%cHandle Flop Called', 'font-weight: bold; color: blue;');
   displayOptionModal = function() {
     var $optModal = $('#optionModal');
     $optModal.modal({backdrop: 'static', keyboard: false});  
+  },
+  displayEndModal = function() {
+    var $endModal = $('#finalEndModal')
+    $endModal.modal({backdrop: 'static', keyboard: false});
   },
   hideOptionModal = function() {
     var $optModal = $('#optionModal');
@@ -1107,6 +1124,9 @@ YTK.login = (function() {
     }
     return -1;
   },
+  isRestartGame = function() {
+    return !localStorage.getItem('YTK-gameRestart-' + playerObj.id) === null;
+  },
   isGameFull = function(snapshot) {
     return getAvailableUserID(snapshot) === -1;
   },
@@ -1274,10 +1294,26 @@ YTK.login = (function() {
   },
   // remove user table from DB if a user disconnected
   bindDisconnect = function() {
+    
     $(window).bind("beforeunload", function() {
-      
+
       if (playerObj.id !== -1) {
 
+        if (isRestartGame()) {
+          YTK.db.dbUpdate (playerObj.id, {host : false, ready : false, money : INIT_MONEY, hand : ''}, function() {
+            if (isHost()) {
+              database.ref('game').remove().then(function() {
+                database.ref('deck').remove().thin(function() {
+                  localStorage.removeItem('YTK-gameRestart-' + playerObj.id);
+                });
+              });
+            }
+            else {
+              localStorage.removeItem('YTK-gameRestart-' + playerObj.id);
+            }
+          });
+        }
+        else {
         YTK.db.dbRemoveNode(playerObj.id);
 
         if (countdownInterval !== null) {
@@ -1295,6 +1331,11 @@ YTK.login = (function() {
           YTK.db.dbRemoveNode('game');
           YTK.db.dbRemoveNode('deck');
         }
+        }
+
+        
+
+
       }
       
       return undefined;
