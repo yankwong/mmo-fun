@@ -1032,36 +1032,62 @@ YTK.game = (function() {
   },
 
   checkWhoWon = function() {
-    var scoreArray = [],
-        solvedArray = [],
-        totalCards,
-        cardSolved;
+    var solvedArray       = [],
+        uniquePlayerCard  = [],
+        rankArray         = [],
+        totalCards, cardSolved, result,
+        winnerCards = [],
+        communityCardsArr = getCommunityDraws();
 
     $.each(connectedPlayers, function(index, player) {
-      communityCardsArr = getCommunityDraws(),
+      var playerHand = JSON.parse(player.hand);
+          
+      uniquePlayerCard[player.id] = [];
+
+      for (var num=0; num<2; num++) {
+
+        var translatedCard = playerHand[num].replace('0', '10').toLowerCase();
+
+        if (translatedCard.indexOf('10') !== -1) {
+          uniquePlayerCard[player.id].push('10');
+        }
+        else {
+          uniquePlayerCard[player.id].push(translatedCard);
+        }
+      }
+
       // combine players hand with community draws
-      totalCards = communityCardsArr.concat(JSON.parse(player.hand));
+      totalCards = communityCardsArr.concat(playerHand);
+      // translate 0 to 10
       totalCards = totalCards.map(function(x) {
         return x.replace('0', '10');
       });
       
       if (totalCards.length > 0) {
-        cardSolved = Hand.solve(totalCards);
-        scoreArray.push(cardSolved.rank);
-        solvedArray.push(cardSolved);
+        solvedArray.push(Hand.solve(totalCards));
       }
     });
 
-    console.log('%c---Poker Rank Comparison---', 'font-weight: bold; color: red;')
-    console.log(solvedArray, scoreArray);
-    // if (solvedArray.length > 0) {
-    //   var p1 = solvedArray[0];
-    //   var p2 = solvedArray[1];
-    //   console.log('how is the score so far: ', Hand.winners([p1, p2]), );  
-    // }
+    // solve it with pokerSolver
+    if (solvedArray.length > 0) {
 
-    // return the index with the larger "rank"
-    return scoreArray.reduce((iMax, x, i, arr) => x > arr[iMax] ? i : iMax, 0);
+      var result = Hand.winners(solvedArray);
+      // parse result
+      $.each(result[0].cardPool, function(index, card) {
+        winnerCards.push((card.value + card.suit).toLowerCase());
+      });
+
+      console.log('%c---Poker Rank Comparison---', 'font-weight: bold; color: red;');
+
+      for (var i=0; i<connectedPlayers.length; i++) {
+        if (winnerCards.indexOf(uniquePlayerCard[i][0]) > -1 && 
+            winnerCards.indexOf(uniquePlayerCard[i][1]) > -1) {
+          console.log('%cWinner: player '+i, 'font-weight: bold; color: purple;');
+          return i;
+        }
+      }
+    }
+    return 0; // catch all
   },
   resetStateObj = function() {
     stateObj = {
