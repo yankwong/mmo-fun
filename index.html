@@ -28,9 +28,12 @@
   <audio controls autoplay="autoplay" loop="loop" class="hidden">
     <source src="../mmo-fun/assets/music/Jazz.mp3" type="audio/mpeg">
   </audio>
-  <audio controls id="ClickSound" class="hidden">
-    <source src="../mmo-fun/assets/music/onClick.mp3"
+  <audio controls id="Winning" class="hidden">
+    <source src="../mmo-fun/assets/music/Cheering.mp3">
   </audio>
+  <audio controls id="Clicking" class="hidden">
+      <source src="../mmo-fun/assets/music/Mouseclick.wav">
+    </audio>
   <!-- Page loader -->
   <div class="page-loader hidden">
     <div class="row">
@@ -131,12 +134,21 @@
             <h5 class="modal-title">Please Choose an Option:</h5>
           </div>
           <div class="modal-body">
-            <div class="endRestartBtn">
-              <button id="restart">Restart</button>
+            <div class="row">
+              <div class="col-md-2">
+                <div class="endRestartBtn">
+                  <button type='button' id="restart" class="btn btn-primary">Restart</button>
+                </div>
+              </div>  
+              <div class="col-md-4">
+                <div class="endLogoutBtn">
+                  <button type='button' class="btn btn-danger" id="logout">Logout</button>
+                </div>
+              </div>
+
+
             </div>
-            <div class="endLogoutBtn">
-              <button id="logout">Logout</button>
-            </div>
+
           </div>
         </div>
       </div>
