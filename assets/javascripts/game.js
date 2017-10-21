@@ -119,8 +119,9 @@ YTK.game = (function () {
 
         function flipcard($card, i) {
           setTimeout(() => {
+            playFlipSound();
             $card.flip(false)
-          }, 500 + (500 * i));
+          }, 1200 + (500 * i));
         }
         playerObj.hand = JSON.stringify(handArray);
 
@@ -235,7 +236,17 @@ YTK.game = (function () {
     playWinSound = function () {
       var sound = document.getElementById("Winning");
       sound.play()
-    }
+    },
+
+    playClickSound = function(){
+      var sound = document.getElementById("Winning");
+      sound.play()
+    },
+
+    playFlipSound = function(){
+      var sound = document.getElementById("Flip");
+      sound.play()
+    },
 
   assignSeats = function () {
       console.log('%cAssign seats', 'font-weight:bold; color: green;');
