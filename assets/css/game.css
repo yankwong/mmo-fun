@@ -78,6 +78,8 @@
         font-size: 40px; } }
     .game-container .community-area .poker-card {
       width: 100px; }
+      .game-container .community-area .poker-card .back {
+        display: none; }
   .game-container .community-deck {
     display: flex;
     align-items: center;

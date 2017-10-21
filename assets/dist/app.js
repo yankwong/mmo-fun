@@ -562,19 +562,22 @@ YTK.game = (function() {
         handArray.push(result.cards[i].code);
         
           putCard($selfHand, result.cards[i].code, i);
-          $("#UserCard" + i).flip({
+
+          var $newCard = $('#UserCard' + i);
+
+          $newCard.flip({
             trigger: 'manual'
           });
          
-          var $userCard = $("#UserCard" + i);
-          $userCard.flip(true);
-          flipcard($userCard, i);
+          $newCard.flip(true);
+          flipcard($newCard, i);
         }
+
         function flipcard($card, i){
           setTimeout(() => {
             $card.flip(false)
           }, 500 + (500*i));
-      }
+        }
       playerObj.hand = JSON.stringify(handArray);
 
       // update firebase with player's hand
@@ -632,10 +635,11 @@ YTK.game = (function() {
       return -1;
     }
   },
+
   putCard = function($div, cardCode, n) {
     var $card = $('<div class="poker-card cardflip" id="UserCard' + n + '" data-cid="' + cardCode + '">');
     var $cardFront = $('<div class="front"> <img src="' + YTK.cards.getImg(cardCode) + '" class="card-img" alt="' + cardCode + '"></div>');
-    var $cardBack = $('<div class="back"> <img src="https://i.pinimg.com/originals/10/80/a4/1080a4bd1a33cec92019fab5efb3995d.png" style="height:160px"></div></div>');
+    var $cardBack = $('<div class="back"> <img src="https://i.pinimg.com/originals/10/80/a4/1080a4bd1a33cec92019fab5efb3995d.png" style="height:143px"></div></div>');
     $card.append($cardFront);
     $card.append($cardBack);
     $div.append($card);
@@ -655,8 +659,23 @@ YTK.game = (function() {
 
     for (var i = 0; i < result.cards.length; i++) {
       communityArray.push(result.cards[i].code);
-      putCard($communityCards, result.cards[i].code);
+      putCard($communityCards, result.cards[i].code, 2+i);
+
+      // var $newCard = $('#UserCard' + (2+i));
+
+      //     $newCard.flip({
+      //       trigger: 'manual'
+      //     });
+         
+      //     $newCard.flip(true);
+      //     flipcard($newCard, i);
+
     }
+    // function flipcard($card, i){
+    //   setTimeout(() => {
+    //     $card.flip(false)
+    //   }, 500 + (500*i));
+    // }
 
     playerObj.community = JSON.stringify(communityArray);
     playerObj.communityShown = communityArray.length - 2;
@@ -1150,7 +1169,7 @@ YTK.game = (function() {
     for (var i = 0; i < connectedPlayers.length; i++) {
       connectedPlayers[i].money = INIT_MONEY;
     }
-  }
+  },
   restartGame = function(endGame) {
     // clean up community cards from html and database
     $('.community-area', '.game-container').html();

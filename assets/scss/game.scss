@@ -107,6 +107,10 @@
 
     .poker-card {
       width: 100px;
+      
+      .back {
+        display: none;
+      }
     }
   }
   .community-deck {
