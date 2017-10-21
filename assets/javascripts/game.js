@@ -235,7 +235,12 @@ YTK.game = (function() {
     $seat.find('.name').html(pObj.name);
     $seat.find('.money').html('<i class="fa fa-usd" aria-hidden="true"></i>' + pObj.money);
   },
-  
+  updatePlayerStat = function(pObj) {
+    var seatID = seats.indexOf(pObj.id),
+      $seat = $('.seat.player-' + seatID);
+
+    $seat.find('.money').html('<i class="fa fa-usd" aria-hidden="true"></i>' + pObj.money);
+  },
   // main function to determine what to do in each round
   gameRoundListener = function(snapshot) {
     var gameNode = snapshot.val()['game'],
@@ -552,6 +557,13 @@ YTK.game = (function() {
     hideOptionModal();
     stateObj.canProcessModal = true;
     stateObj.seesModal = false;
+
+    for (var i=1; i<seats.length; i++) {
+      var player = connectedPlayers[seats[i]];
+      if (player.id !== playerObj.id) {
+        updatePlayerStat(player);  
+      }
+    }  
   },
   getCommunityDraws = function() {
     var $cCards = $('.poker-card', '.game-container .community-area'),
