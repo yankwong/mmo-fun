@@ -1018,30 +1018,39 @@ console.log('%cHandle Flop Called', 'font-weight: bold; color: blue;');
     
     // setup the "call" button
     if (turnCount !== 0 && whosTurn() === connectedPlayers.length - 1) {
-      $callBtn.off().on('click', function() {
-        
-        hideOptionModal();
-        stateObj.seesModal = false;
+        $callBtn.off().on('click', function () {
+          if (playerObj.money >= minBetHolder) {
+            hideOptionModal();
+            stateObj.seesModal = false;
 
-        // normal round: handle bet first, set preFlopBetsMade last 
-        if (gameNode.round !== 2) {
-          playerMakesBet(minBetHolder, true);  
-        }
-        // last round: set preFlopBetsMade first, handle bet last
-        else {
-          YTK.db.dbUpdate('game', {preFlopBetsMade: true}, function() {
-            playerMakesBet(minBetHolder);  
-          });
-        }
-        
-        
-        
-      });
-    } else {
-      $callBtn.off().on('click', function() {
-        playerMakesBet(minBetHolder); /// should trigger modal exchange when it is player id 0 only
-      });
-    }
+            // normal round: handle bet first, set preFlopBetsMade last 
+            if (gameNode.round !== 2) {
+              playerMakesBet(minBetHolder, true);
+            }
+            // last round: set preFlopBetsMade first, handle bet last
+            else {
+              YTK.db.dbUpdate('game', {
+                preFlopBetsMade: true
+              }, function () {
+                playerMakesBet(minBetHolder);
+              });
+            }
+          }
+          else {
+            console.log('%cNot Enough Money', 'font-weight:bold; color: red;');
+          }
+
+        });
+      } else {
+        $callBtn.off().on('click', function () {
+          if (playerObj.money >= minBetHolder) {
+            playerMakesBet(minBetHolder); /// should trigger modal exchange when it is player id 0 only
+          }
+          else {
+            console.log('%cNot Enough Money', 'font-weight:bold; color: red;');
+          }
+        });
+      }
 
     callback();
   },
