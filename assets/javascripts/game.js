@@ -186,7 +186,6 @@ YTK.game = (function() {
   },
   updateDBDeck = function() {
     YTK.cards.getDeckStat(deckObj.id, function(result) {
-      console.log('updating db deck', result);
       YTK.db.dbSet('deck', {
         id        : result.deck_id, 
         shuffled  : result.shuffled,
@@ -335,7 +334,6 @@ YTK.game = (function() {
             putFakeCards($('.seat.player-' + i), 2);
           }  
         }
-
         
         // Bidding Phrase (MULTIPLE)
         if (haveHand(playerObj) && !stateObj.preFlopBetsMade) {
@@ -789,9 +787,11 @@ console.log('%cHandle Flop Called', 'font-weight: bold; color: blue;');
     });
     return retVal;
   },
-  playerMakesBet = function(bet) {
+  playerMakesBet = function(bet, checkBtnEnd) {
     var count = playerObj.money;
         bet = Math.floor(bet);
+
+    checkBtnEnd = checkBtnEnd || false;
 
     playerObj.bet = playerObj.bet || 0;
 
@@ -802,7 +802,11 @@ console.log('%cHandle Flop Called', 'font-weight: bold; color: blue;');
       console.log('%cPlayer '+ playerObj.id + ' Making a bet ($' + bet+')','font-weight: bold; color: red;');
 
       YTK.db.dbUpdate(playerObj.id, {money: count, bet: playerObj.bet + bet}, function() {
-        YTK.db.dbUpdate('game', {recentBet : bet});  
+        YTK.db.dbUpdate('game', {recentBet : bet}, function() {
+          if (checkBtnEnd) {
+            YTK.db.dbUpdate('game', {preFlopBetsMade: true});
+          }
+        });  
       });
     }
     else if (!(playerObj.money) >= bet && bet >= MIN_BET) {
@@ -958,19 +962,22 @@ console.log('%cHandle Flop Called', 'font-weight: bold; color: blue;');
     // setup the "call" button
     if (turnCount !== 0 && whosTurn() === connectedPlayers.length - 1) {
       $callBtn.off().on('click', function() {
-                // close modal
+        
         hideOptionModal();
         stateObj.seesModal = false;
-        playerMakesBet(minBetHolder);
 
-        stateObj.preFlopBetsMade = true;
+        // normal round: handle bet first, set preFlopBetsMade last 
         if (gameNode.round !== 2) {
-          setTimeout(function() { //!!! DEBUG!! hacky (can only update this when gameNode doesn't have a recentBet)
-            YTK.db.dbUpdate('game', {preFlopBetsMade: true});  
-          }, 120);
-        } else {
-          YTK.db.dbUpdate('game', {preFlopBetsMade: true});
+          playerMakesBet(minBetHolder, true);  
         }
+        // last round: set preFlopBetsMade first, handle bet last
+        else {
+          YTK.db.dbUpdate('game', {preFlopBetsMade: true}, function() {
+            playerMakesBet(minBetHolder);  
+          });
+        }
+        
+        
         
       });
     } else {
