@@ -32,6 +32,9 @@ YTK.login = (function() {
     }
     return -1;
   },
+  isRestartGame = function() {
+    return !localStorage.getItem('YTK-gameRestart-' + playerObj.id) === null;
+  },
   isGameFull = function(snapshot) {
     return getAvailableUserID(snapshot) === -1;
   },
@@ -199,10 +202,26 @@ YTK.login = (function() {
   },
   // remove user table from DB if a user disconnected
   bindDisconnect = function() {
+    
     $(window).bind("beforeunload", function() {
-      
+
       if (playerObj.id !== -1) {
 
+        if (isRestartGame()) {
+          YTK.db.dbUpdate (playerObj.id, {host : false, ready : false, money : INIT_MONEY, hand : ''}, function() {
+            if (isHost()) {
+              database.ref('game').remove().then(function() {
+                database.ref('deck').remove().thin(function() {
+                  localStorage.removeItem('YTK-gameRestart-' + playerObj.id);
+                });
+              });
+            }
+            else {
+              localStorage.removeItem('YTK-gameRestart-' + playerObj.id);
+            }
+          });
+        }
+        else {
         YTK.db.dbRemoveNode(playerObj.id);
 
         if (countdownInterval !== null) {
@@ -216,10 +235,15 @@ YTK.login = (function() {
 
         // end the game session if the disconnecting player is the host of the game
         // TODO: shift host when that happens
-        if (playerObj.host === true) {
+        if (playerObj.host === true || playerObj.id === 0) {
           YTK.db.dbRemoveNode('game');
           YTK.db.dbRemoveNode('deck');
         }
+        }
+
+        
+
+
       }
       
       return undefined;
@@ -281,8 +305,11 @@ YTK.login = (function() {
     return connectedPlayers.length > 1 && getHostID() >= 0;
   },
   setToHost = function() {
-    playerObj.host = true;
-    YTK.db.dbUpdate(playerObj.id, {host : true});
+    if (playerObj.id === 0) {
+      playerObj.host = true;  
+    }
+    
+    YTK.db.dbUpdate(0, {host : true});
   },
   startCountdown = function() {
     database.ref().once('value', function(snapshot) {

@@ -22,22 +22,23 @@
 </head>
 
 <body>
-  <!-- Login -->
+  <!-- Page loader -->
   <div class="page-loader hidden">
-      <div class="row">
-          <div id="loader">
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="lading"></div>
-          </div>
+    <div class="row">
+      <div id="loader">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="lading"></div>
       </div>
+    </div>
   </div>
+  <!-- Login -->
   <div class="container login-container">
     <div class="row avatar-select">
       <div class="title col-12">
@@ -96,6 +97,7 @@
         <div class="money"></div>
       </div>
       <div class="community-area"></div>
+      <div class="community-deck"><img src="https://i.pinimg.com/originals/10/80/a4/1080a4bd1a33cec92019fab5efb3995d.png" style="height:160px"></div>
       <div class="seat player-4" data-pid="4">
         <div class="avatar"></div>
         <div class="name"></div>
@@ -108,12 +110,31 @@
       </div>
     </div>
 
+    <!-- Final End Game -->
+    <div class="modal fade" id="finalEndModal" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Please Choose an Option:</h5>
+          </div>
+          <div class="modal-body">
+            <div class="endRestartBtn">
+              <button id="restart">Restart</button>
+            </div>
+            <div class="endLogoutBtn">
+              <button id="logout">Logout</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- End game modal -->
     <div class="modal fade" id="endModal" tabindex="-1" role="dialog" aria-hidden="true">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Game Ended</h5>
+            <h5 class="modal-title"></h5>
           </div>
           <div class="modal-body">
             <div class="summary"><span class="name"></span> won the game!!</div>
@@ -152,8 +173,10 @@
           <div class="modal-body">
             <div class="first-row">
               <div class="community-cards"></div>
-              <div class="user-money">You have: $<span class="amount">100</span></div>
-              <div class="pot-total"><span class="label">Pot: $</span><span class="amount"></span></div>
+                <div class="row money-row">
+                  <div class="user-money">You have: $<span class="amount">100</span></div>
+                  <div class="pot-total"><span class="label">Pot: $</span><span class="amount"></span></div>
+                </div>
               <div class="stats">
                 <div class="p-money p-0 hidden"><span class="name"></span>: $<span class="amount"></span></div>
                 <div class="p-money p-1 hidden"><span class="name"></span>: $<span class="amount"></span></div>
@@ -168,9 +191,11 @@
               <button class="btn btn-outline-primary btn-makeBet" style="margin-right: 30px">Initial Bet</button>  
               <input type="text" name="bet-amount" class="bet-amount" placeholder="Enter Amount"></input>
             </div>
-            <button class="btn btn-warning btn-call hidden">Call ($<span class="amount"></span>)</button>
-            <button class="btn btn-warning btn-check hidden">Check</button>
-            <button class="btn btn-danger btn-fold">Fold</button>
+            <div class="row btns-row">
+              <button class="btn btn-warning btn-call hidden">Call ($<span class="amount"></span>)</button>
+              <button class="btn btn-warning btn-check hidden">Check</button>
+              <button class="btn btn-danger btn-fold">Fold</button>
+              </div>
           </div>
         </div>
       
