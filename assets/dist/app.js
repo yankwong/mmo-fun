@@ -509,7 +509,7 @@ YTK.game = (function () {
     getNewTotalPot = function (recentBet) {
       return totalPotHolder + recentBet
     }
-  showDiv = function ($div) {
+    showDiv = function ($div) {
       $div.removeClass('hidden');
     },
     hideDiv = function ($div) {
@@ -575,7 +575,7 @@ YTK.game = (function () {
 
         function flipcard($card, i) {
           setTimeout(() => {
-            playFlipSound();
+            // playFlipSound();
             $card.flip(false)
           }, 1200 + (500 * i));
         }
@@ -662,23 +662,7 @@ YTK.game = (function () {
       for (var i = 0; i < result.cards.length; i++) {
         communityArray.push(result.cards[i].code);
         putCard($communityCards, result.cards[i].code, 2 + i);
-
-        // var $newCard = $('#UserCard' + (2+i));
-
-        //     $newCard.flip({
-        //       trigger: 'manual'
-        //     });
-
-        //     $newCard.flip(true);
-        //     flipcard($newCard, i);
-
       }
-      // function flipcard($card, i){
-      //   setTimeout(() => {
-      //     $card.flip(false)
-      //   }, 500 + (500*i));
-      // }
-
       playerObj.community = JSON.stringify(communityArray);
       playerObj.communityShown = communityArray.length - 2;
     },
@@ -694,17 +678,17 @@ YTK.game = (function () {
       sound.play()
     },
 
-    playClickSound = function(){
-      var sound = document.getElementById("Winning");
-      sound.play()
-    },
+    // playClickSound = function(){
+    //   var sound = document.getElementById("Winning");
+    //   sound.play()
+    // },
 
-    playFlipSound = function(){
+    // playFlipSound = function(){
       //var sound = document.getElementById("Flip");
       //sound.play()
-    },
+    // },
 
-  assignSeats = function () {
+    assignSeats = function () {
       console.log('%cAssign seats', 'font-weight:bold; color: green;');
       stateObj.canAssignSeat = false;
       if (seats.length === 0 && connectedPlayers.length > 1) {
@@ -738,6 +722,12 @@ YTK.game = (function () {
       var gameNode = snapshot.val()['game'],
         dbGameRound = getDBGameRound(gameNode);
 
+      // if the gameNode is removed, quit game
+      // this should happen when the final game ends  
+      if (typeof gameNode === 'undefined') {
+        window.location.href='index.html';
+      }
+
       // update 'preFlopBetsMade' with firebase data
       stateObj.preFlopBetsMade = gameNode.preFlopBetsMade;
 
@@ -764,42 +754,44 @@ YTK.game = (function () {
           $('#endModal').modal('hide');
           restartGame(false);
         }, ENDGAME_RESULT_TIMER);
-      } else {
-
+      } 
+      else {
         if (endOfGame) {
+          // force restart on final end game
           window.location.href = 'index.html';
 
-          if (!restarted && !stateObj.ultraEndModal) {
-            stateObj.ultraEndModal = true;
+          //-- the codes below won't run. Save for future development
+          // if (!restarted && !stateObj.ultraEndModal) {
+          //   stateObj.ultraEndModal = true;
 
-            // setup ultraEndModal
-            $('#restart').off().on('click', function () {
+          //   // setup ultraEndModal
+          //   $('#restart').off().on('click', function () {
 
-              $('#finalEndModal').modal('hide');
+          //     $('#finalEndModal').modal('hide');
 
-              restarted = true;
-              // restartGame(true);
-              database.ref('/game/restarters/' + (playerObj.id + 1)).set({
-                restart: true
-              })
-            });
+          //     restarted = true;
+          //     // restartGame(true);
+          //     database.ref('/game/restarters/' + (playerObj.id + 1)).set({
+          //       restart: true
+          //     })
+          //   });
 
-            // before displaying, make sure it's already hidden
-            if (!($("#finalEndModal").data('bs.modal') || {})._isShown) {
-              displayEndModal();
-            }
-          }
+          //   // before displaying, make sure it's already hidden
+          //   if (!($("#finalEndModal").data('bs.modal') || {})._isShown) {
+          //     displayEndModal();
+          //   }
+          // }
 
-          var count = 0
-          if (gameNode.hasOwnProperty('restarters')) {
-            $.each(gameNode.restarters, function (key, value) {
-              count += key
-            })
-          }
-          if (count === 3) { // only work for two players
-            endOfGame = false
-            restartGame(true);
-          }
+          // var count = 0
+          // if (gameNode.hasOwnProperty('restarters')) {
+          //   $.each(gameNode.restarters, function (key, value) {
+          //     count += key
+          //   })
+          // }
+          // if (count === 3) { // only work for two players
+          //   endOfGame = false
+          //   restartGame(true);
+          // }
         }
         // ROUND 0
         if (dbGameRound === 0 && !endOfGame) {
@@ -1262,7 +1254,7 @@ YTK.game = (function () {
             }
             initGame(playerObj.id);
           });
-        }, ENDGAME_RESULT_TIMER);
+        }, 1000);
       }
     },
     communityShownOnRound = function (round) {
@@ -1543,29 +1535,36 @@ YTK.game = (function () {
       // setup the "call" button
       if (turnCount !== 0 && whosTurn() === connectedPlayers.length - 1) {
         $callBtn.off().on('click', function () {
+          if (playerObj.money >= minBetHolder) {
+            hideOptionModal();
+            stateObj.seesModal = false;
 
-          hideOptionModal();
-          stateObj.seesModal = false;
-
-          // normal round: handle bet first, set preFlopBetsMade last 
-          if (gameNode.round !== 2) {
-            playerMakesBet(minBetHolder, true);
+            // normal round: handle bet first, set preFlopBetsMade last 
+            if (gameNode.round !== 2) {
+              playerMakesBet(minBetHolder, true);
+            }
+            // last round: set preFlopBetsMade first, handle bet last
+            else {
+              YTK.db.dbUpdate('game', {
+                preFlopBetsMade: true
+              }, function () {
+                playerMakesBet(minBetHolder);
+              });
+            }
           }
-          // last round: set preFlopBetsMade first, handle bet last
           else {
-            YTK.db.dbUpdate('game', {
-              preFlopBetsMade: true
-            }, function () {
-              playerMakesBet(minBetHolder);
-            });
+            console.log('%cNot Enough Money', 'font-weight:bold; color: red;');
           }
-
-
 
         });
       } else {
         $callBtn.off().on('click', function () {
-          playerMakesBet(minBetHolder); /// should trigger modal exchange when it is player id 0 only
+          if (playerObj.money >= minBetHolder) {
+            playerMakesBet(minBetHolder); /// should trigger modal exchange when it is player id 0 only
+          }
+          else {
+            console.log('%cNot Enough Money', 'font-weight:bold; color: red;');
+          }
         });
       }
 
