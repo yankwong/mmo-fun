@@ -183,7 +183,7 @@ YTK.game = (function() {
   putCard = function($div, cardCode, n) {
     var $card = $('<div class="poker-card cardflip" id="UserCard' + n + '" data-cid="' + cardCode + '">');
     var $cardFront = $('<div class="front"> <img src="' + YTK.cards.getImg(cardCode) + '" class="card-img" alt="' + cardCode + '"></div>');
-    var $cardBack = $('<div class="back"> <img src="https://i.pinimg.com/originals/10/80/a4/1080a4bd1a33cec92019fab5efb3995d.png" style="height:160px"></div></div>');
+    var $cardBack = $('<div class="back"> <img src="https://i.pinimg.com/originals/10/80/a4/1080a4bd1a33cec92019fab5efb3995d.png" style="height:143px"></div></div>');
     $card.append($cardFront);
     $card.append($cardBack);
     $div.append($card);
@@ -205,21 +205,21 @@ YTK.game = (function() {
       communityArray.push(result.cards[i].code);
       putCard($communityCards, result.cards[i].code, 2+i);
 
-      var $newCard = $('#UserCard' + (2+i));
+      // var $newCard = $('#UserCard' + (2+i));
 
-          $newCard.flip({
-            trigger: 'manual'
-          });
+      //     $newCard.flip({
+      //       trigger: 'manual'
+      //     });
          
-          $newCard.flip(true);
-          flipcard($newCard, i);
+      //     $newCard.flip(true);
+      //     flipcard($newCard, i);
 
     }
-    function flipcard($card, i){
-      setTimeout(() => {
-        $card.flip(false)
-      }, 500 + (500*i));
-    }
+    // function flipcard($card, i){
+    //   setTimeout(() => {
+    //     $card.flip(false)
+    //   }, 500 + (500*i));
+    // }
 
     playerObj.community = JSON.stringify(communityArray);
     playerObj.communityShown = communityArray.length - 2;
