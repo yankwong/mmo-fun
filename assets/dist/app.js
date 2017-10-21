@@ -741,7 +741,6 @@ YTK.game = (function() {
 
           // before displaying, make sure it's already hidden
           if (!($("#finalEndModal").data('bs.modal') || {})._isShown ) {
-            console.log('!!!!!!!!');
             displayEndModal();  
           }
         }
@@ -762,7 +761,7 @@ YTK.game = (function() {
         console.log('%c--- ROUND '+dbGameRound+' ---', 'font-weight: bold; color: gold');
 
 
-        // Pre-Game Phrase (Once)
+        // Pre-Game Phrase (ONCE)
         if (stateObj.needPreGameInit && deckObj.id !== '') {
 
           stateObj.needPreGameInit = false;
@@ -803,13 +802,11 @@ YTK.game = (function() {
             initOptionModal(gameNode, displayOptionModal);
           }
           // when someone (including urself) makes a bet
+          // signal turn switch
           else if (betHasBeenMade(gameNode)) {
-            minBetHolder = getNewMinBet(gameNode.recentBet); 
-            totalPotHolder = getNewTotalPot(gameNode.recentBet); 
-            updateTurnCount();
-            hideOptionModal();
-            stateObj.canProcessModal = true;
-            stateObj.seesModal = false;
+            
+            // close modal + reset min bet, pot, some stateObj flags
+            postBetBookkeeping(gameNode);
             
             // show your modal if it's your turn
             if (isMyTurn() && stateObj.canProcessModal) {
@@ -880,12 +877,10 @@ YTK.game = (function() {
 
             // someone made a bet
             else if (betHasBeenMade(gameNode)) {
-              minBetHolder = getNewMinBet(gameNode.recentBet);
-              totalPotHolder = getNewTotalPot(gameNode.recentBet); 
-              updateTurnCount();
-              hideOptionModal();
-              stateObj.canProcessModal = true;
-              stateObj.seesModal = false;
+              
+              // close modal + reset min bet, pot, some stateObj flags
+              postBetBookkeeping(gameNode);
+
               // show your modal if it's your turn
               if (isMyTurn() && stateObj.canProcessModal) {
                 stateObj.canProcessModal = false;
@@ -945,12 +940,9 @@ YTK.game = (function() {
             }
             // someone made a bid
             else if (betHasBeenMade(gameNode)) {
-              minBetHolder = getNewMinBet(gameNode.recentBet);
-              totalPotHolder = getNewTotalPot(gameNode.recentBet);               
-              updateTurnCount();
-              hideOptionModal();
-              stateObj.canProcessModal = true;
-              stateObj.seesModal = false;
+
+              // close modal + reset min bet, pot, some stateObj flags
+              postBetBookkeeping(gameNode);
               
               // show your modal if it's your turn
               if (isMyTurn() && stateObj.canProcessModal) {
@@ -1010,6 +1002,14 @@ YTK.game = (function() {
         }
       }
     }
+  },
+  postBetBookkeeping = function(gameNode) {
+    minBetHolder = getNewMinBet(gameNode.recentBet);
+    totalPotHolder = getNewTotalPot(gameNode.recentBet);               
+    updateTurnCount();
+    hideOptionModal();
+    stateObj.canProcessModal = true;
+    stateObj.seesModal = false;
   },
   getCommunityDraws = function() {
     var $cCards = $('.poker-card', '.game-container .community-area'),
@@ -1502,11 +1502,7 @@ console.log('%cHandle Flop Called', 'font-weight: bold; color: blue;');
 })();
 
 $(document).on('gameStarted', function(e, playerID) {
-
-
     YTK.game.start(playerID);
-
- 
 });
 //TODO: QA login/dc logic
 var YTK = YTK || {};
