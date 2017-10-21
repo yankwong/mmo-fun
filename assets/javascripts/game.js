@@ -244,8 +244,8 @@ YTK.game = (function () {
     },
 
     playFlipSound = function(){
-      var sound = document.getElementById("Flip");
-      sound.play()
+      //var sound = document.getElementById("Flip");
+      //sound.play()
     },
 
   assignSeats = function () {
@@ -311,6 +311,8 @@ YTK.game = (function () {
       } else {
 
         if (endOfGame) {
+          window.location.href = 'index.html';
+
           if (!restarted && !stateObj.ultraEndModal) {
             stateObj.ultraEndModal = true;
 

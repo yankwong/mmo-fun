@@ -105,7 +105,7 @@ var MAX_PLAYERS = 2,
     MODAL_COUNTDOWN = 15,
     DEFAULT_ANTE = 5;
     MIN_BET = 0,
-    ENDGAME_RESULT_TIMER = 1000;
+    ENDGAME_RESULT_TIMER = 2000;
 // utility object to interact with FireBase
 var YTK = YTK || {};
 
@@ -700,8 +700,8 @@ YTK.game = (function () {
     },
 
     playFlipSound = function(){
-      var sound = document.getElementById("Flip");
-      sound.play()
+      //var sound = document.getElementById("Flip");
+      //sound.play()
     },
 
   assignSeats = function () {
@@ -767,6 +767,8 @@ YTK.game = (function () {
       } else {
 
         if (endOfGame) {
+          window.location.href = 'index.html';
+
           if (!restarted && !stateObj.ultraEndModal) {
             stateObj.ultraEndModal = true;
 
