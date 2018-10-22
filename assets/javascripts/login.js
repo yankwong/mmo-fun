@@ -200,48 +200,53 @@ YTK.login = (function () {
         });
       });
     },
+    playerObjectExist = function() {
+      return playerObj.id !== -1;
+    },
+    doRestartGame = function() {
+      YTK.db.dbUpdate(playerObj.id, { host: false, ready: false, money: INIT_MONEY, hand: '' }, function () {
+        if (isHost()) {
+          database.ref('game').remove().then(function () {
+            database.ref('deck').remove().thin(function () {
+              localStorage.removeItem('YTK-gameRestart-' + playerObj.id);
+            });
+          });
+        }
+        else {
+          localStorage.removeItem('YTK-gameRestart-' + playerObj.id);
+        }
+      });
+    },
+    doDisconnect = function() {
+      YTK.db.dbRemoveNode(playerObj.id);
+
+      if (countdownInterval !== null) {
+        clearInterval(countdownInterval);
+      }
+
+      if (playerObj.ready === true) {
+        YTK.db.dbRemoveNode('countdown');
+        setAllUnready();
+      }
+
+      // end the game session if the disconnecting player is the host of the game
+      // TODO: shift host when that happens
+      if (playerObj.host === true || playerObj.id === 0) {
+        YTK.db.dbRemoveNode('game');
+        YTK.db.dbRemoveNode('deck');
+      }
+    },
     // remove user table from DB if a user disconnected
     bindDisconnect = function () {
-
       $(window).bind("beforeunload", function () {
-
-        if (playerObj.id !== -1) {
-
+        if (playerObjectExist()) {
           if (isRestartGame()) {
-            YTK.db.dbUpdate(playerObj.id, { host: false, ready: false, money: INIT_MONEY, hand: '' }, function () {
-              if (isHost()) {
-                database.ref('game').remove().then(function () {
-                  database.ref('deck').remove().thin(function () {
-                    localStorage.removeItem('YTK-gameRestart-' + playerObj.id);
-                  });
-                });
-              }
-              else {
-                localStorage.removeItem('YTK-gameRestart-' + playerObj.id);
-              }
-            });
+            doRestartGame();
           }
           else {
-            YTK.db.dbRemoveNode(playerObj.id);
-
-            if (countdownInterval !== null) {
-              clearInterval(countdownInterval);
-            }
-
-            if (playerObj.ready === true) {
-              YTK.db.dbRemoveNode('countdown');
-              setAllUnready();
-            }
-
-            // end the game session if the disconnecting player is the host of the game
-            // TODO: shift host when that happens
-            if (playerObj.host === true || playerObj.id === 0) {
-              YTK.db.dbRemoveNode('game');
-              YTK.db.dbRemoveNode('deck');
-            }
+            doDisconnect();
           }
         }
-
         return undefined;
       });
     },
@@ -320,7 +325,6 @@ YTK.login = (function () {
             else {
               startCounter--;
             }
-
           }, 1000);
         }
       });
@@ -353,7 +357,6 @@ YTK.login = (function () {
           getOnlinePlayers(snapshot);
           updateRdyBtn();
           gameStartListener(snapshot);
-          // console.log('(DB-Value, login)', snapshot.val());  
         }
       });
     },
