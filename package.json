@@ -16,7 +16,7 @@
   "description": "Explore prototyping with Firebase. \r A simple multiplayer poker game with a basic queue and game turns. <br/>",
   "main": "Gruntfile.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node node_modules/mocha/bin/mocha --recursive ./tests"
   },
   "repository": {
     "type": "git",
