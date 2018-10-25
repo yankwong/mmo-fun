@@ -18,12 +18,6 @@ YTK.login = (function () {
     startCounter,
     loginDBListener,
     gameStarted = false,
-    showDiv = function ($div) {
-      $div.removeClass('hidden');
-    },
-    hideDiv = function ($div) {
-      $div.addClass('hidden');
-    },
     getAvailableUserID = function (snapshot) {
       for (var i = 0; i < MAX_PLAYERS; i++) {
         if (!snapshot.hasChild(i + '')) {
@@ -41,7 +35,7 @@ YTK.login = (function () {
     setPlayerObj = function (userObj) {
       playerObj = userObj;
     },
-    addConnectedPlayer = function (pObj) {
+    addConnectedPlayerToUI = function (pObj) {
       var $pRow = $('<div class="player player-' + pObj.id + '" data-pid="' + pObj.id + '">'),
         $pName = $('<span class="name">' + pObj.name + '</span>'),
         $pWait = $('<span class="status hidden">Waiting...</span>'),
@@ -65,7 +59,6 @@ YTK.login = (function () {
           $pRow.append($pWait);
         }
       }
-
       $('.connected-players').append($pRow);
     },
     bindDCBtn = function () {
@@ -92,24 +85,27 @@ YTK.login = (function () {
     isPlayerNode = function (node) { // is this Node a player node?
       return node.hasOwnProperty('host');
     },
-    getOnlinePlayers = function (snapshot) {
 
+    addPlayerToGlobalConnectedPlayersArray = function() {
+      connectedPlayers.push({
+        id: node.id,
+        name: node.name,
+        avatar: node.avatar,
+        startTime: node.startTime,
+        money: node.money,
+        ready: node.ready,
+        host: node.host,
+      });
+    },
+    getOnlinePlayers = function (snapshot) {
       connectedPlayers = [];
-      snapshot.forEach(function (snap) {
+      snapshot.forEach(function(snap) {
         var node = snap.val();
 
         if (isPlayerNode(node)) {
-          connectedPlayers.push({
-            id: node.id,
-            name: node.name,
-            avatar: node.avatar,
-            startTime: node.startTime,
-            money: node.money,
-            ready: node.ready,
-            host: node.host,
-          });
+          addPlayerToGlobalConnectedPlayersArray();
 
-          addConnectedPlayer({
+          addConnectedPlayerToUI({
             id: node.id,
             name: node.name,
             ready: node.ready,
@@ -122,7 +118,7 @@ YTK.login = (function () {
       var userName = $('.username', '.user-form').val().trim();
 
       if (userName !== '') {
-        hideDiv($('.user-form'));
+        YTK.utils.hideDiv($('.user-form'));
         database.ref().once('value', function (snapshot) {
 
           //display all players currently logged in
@@ -135,7 +131,7 @@ YTK.login = (function () {
           else {
             var userID = getAvailableUserID(snapshot);
 
-            showDiv($('.connected-players'));
+            YTK.utils.showDiv($('.connected-players'));
 
             if (userID !== -1) {
               // init player object
@@ -182,15 +178,14 @@ YTK.login = (function () {
         $loginTitle.fadeOut('slow');
         $this.addClass('picked');
         playerObj.avatar = parseInt($(this).attr('data-id'));
-        showDiv($('.user-form', '.login-container'));
-        hideDiv($avatarBtn.not('.picked').closest('.col-lg-4'));
+        YTK.utils.showDiv($('.user-form', '.login-container'));
+        YTK.utils.hideDiv($avatarBtn.not('.picked').closest('.col-lg-4'));
         $this.off('click');
       });
-
     },
     setAllUnready = function () {
       database.ref().once('value', function (snapshot) {
-        snapshot.forEach(function (snap) {
+        snapshot.forEach(function(snap) {
           var node = snap.val();
 
           if (node.hasOwnProperty('id') && node.ready === true) {
@@ -250,16 +245,13 @@ YTK.login = (function () {
         return undefined;
       });
     },
-    clearDiv = function ($div) {
-      $div.empty();
-    },
     resetStartCounter = function () {
       startCounter = COUNTDOWN_TIMER;
     },
     showPlayersStatus = function () {
       var $status = $('.status', '.network-info');
 
-      showDiv($status);
+      YTK.utils.showDiv($status);
     },
     countDownListener = function (snapshot) {
 
@@ -293,7 +285,6 @@ YTK.login = (function () {
       if (playerObj.id === 0) {
         playerObj.host = true;
       }
-
       YTK.db.dbUpdate(0, { host: true });
     },
     startCountdown = function () {
@@ -352,7 +343,7 @@ YTK.login = (function () {
     bindDBListener = function () {
       loginDBListener = database.ref().on('value', function (snapshot) {
         if (!gameStarted) {
-          clearDiv($('.connected-players', '.login-container'));
+          YTK.utils.clearDiv($('.connected-players', '.login-container'));
           countDownListener(snapshot);
           getOnlinePlayers(snapshot);
           updateRdyBtn();
