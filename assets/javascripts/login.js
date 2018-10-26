@@ -77,15 +77,13 @@ YTK.login = (function () {
           // update firebase
           YTK.db.dbSet(playerObj.id, playerObj);
 
-          // start countdown
           startCountdown();
         }
       });
     },
-    isPlayerNode = function (node) { // is this Node a player node?
+    isPlayerNode = function (node) {
       return node.hasOwnProperty('host');
     },
-
     addPlayerToGlobalConnectedPlayersArray = function() {
       connectedPlayers.push({
         id: node.id,
@@ -253,9 +251,11 @@ YTK.login = (function () {
 
       YTK.utils.showDiv($status);
     },
+    counterExist = function counterExist (snapshot) {
+      snapshot.hasChild('countdown')
+    },
     countDownListener = function (snapshot) {
-
-      if (snapshot.hasChild('countdown')) { // if counter exist
+      if (counterExist(snapshot)) {
         playerObj.ready = snapshot.val()[playerObj.id].ready;
         $('.start-counter').html(snapshot.val()['countdown']);
         showPlayersStatus();
@@ -265,23 +265,27 @@ YTK.login = (function () {
         $('.start-counter').html('');
       }
     },
-    getHostID = function () {
-      var hostID = -1;
+    getHostIdFromConnectedPlayers = function (connectedPlayers) {
+      var hostId = -1;
+
       for (var i = 0; i < connectedPlayers.length; i++) {
         if (connectedPlayers[i].host) {
-          hostID = connectedPlayers[i].id;
+          hostId = connectedPlayers[i].id;
           break;
         }
       }
-      if (hostID === -1) {
-        hostID = connectedPlayers[0].id;
+      return hostId;
+    },
+    getHostID = function () {
+      if (getHostIdFromConnectedPlayers(connectedPlayers) === -1) {
+        hostId = connectedPlayers[0].id;
       }
-      return hostID;
+      return hostId;
     },
     gameCanStart = function () {
       return connectedPlayers.length > 1 && getHostID() >= 0;
     },
-    setToHost = function () {
+    setCurrentPlayerToHost = function () {
       if (playerObj.id === 0) {
         playerObj.host = true;
       }
@@ -291,7 +295,7 @@ YTK.login = (function () {
       database.ref().once('value', function (snapshot) {
         if (!snapshot.hasChild('countdown')) {
 
-          setToHost();  // set this player to host
+          setCurrentPlayerToHost();
 
           resetStartCounter();
 
@@ -320,17 +324,23 @@ YTK.login = (function () {
         }
       });
     },
+    disableReadyButtons = function($readyBtns) {
+      $readyBtns.prop('disabled', true);
+      $readyBtns.addClass('btn-outline-secondary');
+      $readyBtns.removeClass('btn-outline-success');
+    },
+    enableReadyButtons = function($readyBtns) {
+      $readyBtns.prop('disabled', false);
+      $readyBtns.removeClass('btn-outline-secondary');
+      $readyBtns.addClass("btn-outline-success");
+    },
     updateRdyBtn = function () {
       var $rdyBtns = $('.ready-btn');
+
       if (connectedPlayers.length === 1) {
-        $rdyBtns.prop('disabled', true);
-        $rdyBtns.addClass('btn-outline-secondary');
-        $rdyBtns.removeClass('btn-outline-success');
-      }
-      else {
-        $rdyBtns.prop('disabled', false);
-        $rdyBtns.removeClass('btn-outline-secondary');
-        $rdyBtns.addClass("btn-outline-success");
+        disableReadyButtons($rdyBtns);
+      } else {
+        enableReadyButtons($rdyBtns);
       }
     },
     gameStartListener = function (snapshot) {
